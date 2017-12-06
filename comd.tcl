@@ -28,6 +28,7 @@ package provide comd 1.0
 package require solvate
 package require autoionize
 package require psfgen
+package require autopsf
 package require pbctools
 package require exectool
 
@@ -633,25 +634,16 @@ proc ::comd::Prepare_system {} {
   resetpsf
   mol delete all
   mol new $initial_pdb
-  set pro [atomselect top "protein and chain ${initial_chid}"]
+  set pro [atomselect top "not altloc B and not hydrogen and chain ${initial_chid}"]
   $pro writepdb init.pdb
   mol delete all
   mol new init.pdb
-  set pro [atomselect top "protein and not altloc B and not hydrogen and chain ${initial_chid}"]
-  $pro writepdb prop.pdb
 
   if {$topo_file == ""} {
   set topo_file "${COMD_PATH}/top_all27_prot_lipid.top"
   }
-  topology $topo_file
-  pdbalias residue HIS HSD
-  pdbalias atom ILE CD1 CD
-  segment R {pdb prop.pdb}
-  coordpdb prop.pdb R
-  guesscoord
-  writepdb pro.pdb
-  writepsf pro.psf
-  solvate pro.psf pro.pdb -t $solvent_padding -o pro_wb
+  autopsf -mol top -top $topo_file -prefix pro
+  solvate pro_formatted_autopsf.psf pro_formatted_autopsf.pdb -t $solvent_padding -o pro_wb
   # DELETE solvated molecule
 
   if {$neutralize} {
@@ -700,21 +692,12 @@ proc ::comd::Prepare_system {} {
   resetpsf
   mol delete all
   mol new $final_pdb
-  set pro [atomselect top "protein and chain ${final_chid}"]
+  set pro [atomselect top "not altloc B and not hydrogen and chain ${final_chid}"]
   $pro writepdb fino.pdb
   mol delete all
   mol new fino.pdb
-  set pro [atomselect top "protein and not altloc B and not hydrogen and chain ${final_chid}"]
-  $pro writepdb prop.pdb
-  topology $topo_file
-  pdbalias residue HIS HSD
-  pdbalias atom ILE CD1 CD1
-  segment R {pdb prop.pdb}
-  coordpdb prop.pdb R
-  guesscoord
-  writepdb pro.pdb
-  writepsf pro.psf
-  solvate pro.psf pro.pdb -t $solvent_padding -o pro_wb
+  autopsf -mol top -top $topo_file -prefix pro
+  solvate pro_formatted_autopsf.psf pro_formatted_autopsf.pdb -t $solvent_padding -o pro_wb
 
   # # DELETE solvated molecule
 

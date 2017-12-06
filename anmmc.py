@@ -10,8 +10,24 @@ for arg in sys.argv:
 
 initial_pdb=ar[1]
 final_pdbn=ar[2]
-anm_cut=float(ar[3])
-devi=float(ar[4])
+
+if len(ar) > 3:
+    anm_cut=float(ar[3])
+else:
+    anm_cut=15
+
+if len(ar) > 4:
+    devi=float(ar[4])
+
+if len(ar) > 5:
+    N=int(ar[5])
+else:
+    accept_para=0.1
+
+if len(ar) > 6:
+    N=int(ar[6])
+else:
+    N=1000000
 
 pdb = parsePDB(initial_pdb)
 final_pdb = parsePDB(final_pdbn)
@@ -19,7 +35,6 @@ final_pdb = parsePDB(final_pdbn)
 # Current Structure 
 pdb_ca = pdb.ca
 stepcutoff = 0.5 * (len(pdb_ca) ** 0.5)
-N=1000000
 
 # ANM calculation based on current
 pdb_anm = ANM('pdb ca')
@@ -42,9 +57,8 @@ size=pdb_ca.getResnums().shape[0]
 # Difference between current and final structure 
 deviation = final_pdb_ca.getCoords() - pdb_ca.getCoords()
 # Cutoff to check the structure deviated a lot	
-scale_devi = devi
 	# Scale factor for estimation of energy
-scale_factor = sqrt(abs(scale_devi*min(pdb_anm.getEigvals())))
+scale_factor = sqrt(abs(devi*min(pdb_anm.getEigvals())))
 	# counts for metropolis sampling
 count1 = 0 # Up-hill moves
 count2 = 0 # Accepted up-hill moves

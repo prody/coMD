@@ -76,6 +76,8 @@ namespace eval ::comd:: {
   # ANM-MC-Metropolis parameters
   variable anm_cutoff 
   variable dev_mag 
+  variable accept_para
+  variable max_steps
   # TMD options
   variable spring_k 
   variable tmd_len 
@@ -347,8 +349,8 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
 
   grid [button $mfamo.length_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "After running targeted molecular dynamics simulations the final structure needs to be equilibrated into a stable state. The length of minimization creates 
-        more stable structures which will guarantees user to have a stable targeted molecular dynamics simulation. The units are in ps. "}] \
+        -message "After running targeted molecular dynamics simulations the final structure needs to be equilibrated into a stable state. Longer minimization creates 
+        more stable structures which will guarantee users have a stable targeted molecular dynamics simulation. The units are in ps. "}] \
     -row 1 -column 4 -sticky w
   grid [label $mfamo.length_label -text "Minimization length (ps): "] \
     -row 1 -column 5 -sticky w
@@ -363,7 +365,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
   
   grid [button $mfamc.anmcut_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "In ANM calculations, the cutoff parameter is the maximum distance that two proteins are in contact. The units are A. "}] \
+        -message "In ANM calculations, the cutoff parameter is the maximum distance that two residues are in contact. The units are A. "}] \
     -row 0 -column 0 -sticky w
   grid [label $mfamc.anmc_label -text "ANM cutoff (A): "] \
     -row 0 -column 1 -sticky w
@@ -375,7 +377,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
 
   grid [button $mfamc.dev_mag_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "The scaling factor used when disturbing the structure of protein in ANM-MC step. Default and suggested value is 0.1 A."}] \
+        -message "The scaling factor used when disturbing the protein structure in ANM-MC steps. Default and suggested value is 0.1 A."}] \
     -row 0 -column 4 -sticky w
   grid [label $mfamc.dev_mag_label -text "Deviation (A): "] \
     -row 0 -column 5 -sticky w
@@ -383,7 +385,28 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
       -textvariable ::comd::dev_mag] \
     -row 0 -column 6 -sticky w
 
+  grid [button $mfamc.accept_para_help -text "?" -padx 0 -pady 0 -command {
+      tk_messageBox -type ok -title "HELP" \
+        -message "The acceptance parameter in ANM-MC steps. Default and suggested value is 0.1."}] \
+    -row 1 -column 0 -sticky w
+  grid [label $mfamc.accept_para_label -text "Acceptance parameter: "] \
+    -row 1 -column 1 -sticky w
+  grid [entry $mfamc.accept_para_field -width 6 \
+      -textvariable ::comd::accept_para] \
+    -row 1 -column 2 -sticky w
 
+  grid [label $mfamc.separatpr3_label -text "      "] \
+    -row 0 -column 3 -sticky w
+
+  grid [button $mfamc.max_steps_help -text "?" -padx 0 -pady 0 -command {
+      tk_messageBox -type ok -title "HELP" \
+        -message "The maximal number of steps in ANM-MC step. Default and suggested value is 1000000."}] \
+    -row 1 -column 4 -sticky w
+  grid [label $mfamc.max_steps_label -text "Max steps: "] \
+    -row 1 -column 5 -sticky w
+  grid [entry $mfamc.max_steps_field -width 6 \
+      -textvariable ::comd::max_steps] \
+    -row 1 -column 6 -sticky w
 
   # grid [button $mfamc.stepcut_help -text "?" -padx 0 -pady 0 -command {
   #     tk_messageBox -type ok -title "HELP" \
@@ -576,7 +599,9 @@ proc ::comd::Prepare_system {} {
   variable output_prefix
   variable comd_cycle
   variable anm_cutoff 
-  variable dev_mag 
+  variable dev_mag
+  variable accept_para
+  variable max_steps 
   variable spring_k
   variable tmd_len
   variable num_cores
@@ -916,8 +941,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "\$s1 writepdb final_target.pdb"
   
   #set anmmc_path [file join "$COMD_PATH" "anmmc.py"]
-  puts $tcl_file "set result \[exec -ignorestderr \$python_path anmmc.py starting_initial.pdb initial_target.pdb ${anm_cutoff} ${dev_mag}\]"
-  puts $tcl_file "set result \[exec -ignorestderr \$python_path anmmc.py starting_final.pdb final_target.pdb ${anm_cutoff} ${dev_mag}\]"
+  puts $tcl_file "set result \[exec -ignorestderr \$python_path anmmc.py starting_initial.pdb initial_target.pdb ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps}\]"
+  puts $tcl_file "set result \[exec -ignorestderr \$python_path anmmc.py starting_final.pdb final_target.pdb ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps}\]"
   
   puts $tcl_file "mol delete all"
   puts $tcl_file "mol load psf initial_ionized.psf"

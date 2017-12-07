@@ -265,24 +265,24 @@ proc ::comd::comdgui {} {
   # Enter ionization options
   set mfaio [labelframe $mfa.ionize_options -text "Ionization parameters" -bd 2]
   # Topology File
-  grid [button $mfaio.topo_help -text "?" -padx 0 -pady 0 -command {
-      tk_messageBox -type ok -title "HELP" \
-        -message "This file is the topology file that will be given to psfgen package of vmd. Therefore, \
-        from given static structure this will create bonds, angles and various structural elements based on \
-        topology parameters provided. Suggested file extension is .top but others will be accepted. "}] \
-    -row 0 -column 0 -sticky w
-  grid [label $mfaio.topo_label -text "Topology File:"] -row 0 -column 1 -sticky w
-  grid [entry $mfaio.topo_path -width 28 \
-      -textvariable ::comd::topo_file] \
-    -row 0 -column 2 -columnspan 4 -sticky ew
-  grid [button $mfaio.topo_browse -text "Browse" -width 6 -pady 1 -command {
-      set tempfile [tk_getOpenFile \
-                    -filetypes {{"Topology files" { .top .TOP }} {"All files" *}}]
-      if {![string equal $tempfile ""]} {
-        set ::comd::topo_file $tempfile
-      } }] \
-    -row 0 -column 6 -sticky w
-  
+#  grid [button $mfaio.topo_help -text "?" -padx 0 -pady 0 -command {
+#      tk_messageBox -type ok -title "HELP" \
+#        -message "This file is the topology file that will be given to psfgen package of vmd. Therefore, \
+#        from given static structure this will create bonds, angles and various structural elements based on \
+#        topology parameters provided. Suggested file extension is .top but others will be accepted. "}] \
+#    -row 0 -column 0 -sticky w
+#  grid [label $mfaio.topo_label -text "Topology File:"] -row 0 -column 1 -sticky w
+#  grid [entry $mfaio.topo_path -width 28 \
+#      -textvariable ::comd::topo_file] \
+#    -row 0 -column 2 -columnspan 4 -sticky ew
+#  grid [button $mfaio.topo_browse -text "Browse" -width 6 -pady 1 -command {
+#      set tempfile [tk_getOpenFile \
+#                    -filetypes {{"Topology files" { .top .TOP }} {"All files" *}}]
+#      if {![string equal $tempfile ""]} {
+#        set ::comd::topo_file $tempfile
+#      } }] \
+#    -row 0 -column 6 -sticky w
+
   #Solvation box padding and counter ions
   grid [button $mfaio.padding_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
@@ -290,74 +290,158 @@ proc ::comd::comdgui {} {
 and its imaginary copies under periodic boundary conditions. For systems with\
 probes, the resulting padding distance will be slightly larger, due to\
 constraint of preserving the ratio of 20 water molecules per probe molecule."}] \
-    -row 1 -column 0 -sticky w
+    -row 0 -column 0 -sticky w
   grid [label $mfaio.padding_label -text "Box padding (A): "] \
-    -row 1 -column 1 -sticky w
+    -row 0 -column 1 -sticky w
   grid [entry $mfaio.padding_entry -width 6 \
     -textvariable ::comd::solvent_padding] \
-    -row 1 -column 2 -sticky ew
+    -row 0 -column 2 -sticky ew
 
-  #grid [label $mfaio.separatpr_label -text "   "] \
+  grid [label $mfaio.separatpr_label -text "     "] \
     -row 1 -column 3 -sticky w
 
   grid [button $mfaio.neutralize_help -text "?" -padx 0 -pady 0 -command {
     tk_messageBox -type ok -title "HELP" \
       -message "By default, counter ions will be added to neutralize a charged\
 system. A charged system (if the protein is charged) may be obtained by unchecking this option."}] \
-    -row 1 -column 4 -sticky w
+    -row 0 -column 4 -sticky w
   grid [label $mfaio.neutralize_label \
       -text "Add counter ions: "] \
-    -row 1 -column 5 -sticky w
+    -row 0 -column 5 -sticky w
   grid [checkbutton $mfaio.neutralize_check -text "" \
       -variable ::comd::neutralize] \
-    -row 1 -column 6 -sticky w
+    -row 0 -column 6 -sticky w
 
   pack $mfaio -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
+  #Topology files
+  grid [button $mfaio.topo_help -text "?" -padx 0 -pady 0 -command {
+      tk_messageBox -type ok -title "HELP" \
+        -message "Multiple topology files can be specified that will be given to psfgen package of vmd. Therefore, \
+        from given static structure this will create bonds, angles and various structural elements based on \
+        topology parameters provided. Suggested file extension is .top but others will be accepted. "}] \
+    -row 1 -column 0 -sticky w
+  grid [label $mfaio.topo_label -text "Topology Files:"] \
+    -row 1 -column 1 -sticky w
+  grid [frame $mfaio.topo_frame] \
+    -row 1 -column 2 -rowspan 2 -columnspan 1 -sticky w
+  scrollbar $mfaio.topo_frame.scroll -command "$mfaio.topo_frame.list yview"
+  listbox $mfaio.topo_frame.list -activestyle dotbox \
+    -yscroll "$mfaio.topo_frame.scroll set" \
+    -width 37 -height 3 -setgrid 1 -selectmode browse \
+    -listvariable ::comd::topo_file
+  frame $mfaio.topo_frame.buttons
+  pack $mfaio.topo_frame.list $mfaio.topo_frame.scroll \
+    -side left -fill y -expand 1
+
+  grid [button $mfaio.topo_add -text "Add" -width 6 -pady 1 \
+        -command [namespace code {
+        set tempfiles [tk_getOpenFile -multiple 1\
+          -filetypes { {{Topology files} {.top .TOP .rtf .RTF}} {{All files} {*}} }]
+        if {$tempfiles!=""} {
+          foreach tempfile $tempfiles {
+            if {[lsearch $::comd::topo_file $tempfile] > -1} {
+              tk_messageBox -type ok -title "WARNING" \
+                -message "$tempfile has already been added to the list."
+            } else {
+              lappend ::comd::topo_file $tempfile
+            }
+          }
+        }
+      }]] \
+    -row 1 -column 5 -sticky w
+  grid [button $mfaio.topo_delete -text "Remove"  -width 6 -pady 1 \
+      -command [namespace code {
+      foreach i [.comdgui.main_frame.process.input_files.topo_frame.list curselection] {
+        .comdgui.main_frame.process.input_files.topo_frame.list delete $i
+      } }]] \
+    -row 2 -column 5 -sticky w
+
   # Enter minimization options
   set mfamo [labelframe $mfa.minimize_options -text "Minimization parameters" -bd 2]
-  # Topology File
-  grid [button $mfamo.para_help -text "?" -padx 0 -pady 0 -command {
-      tk_messageBox -type ok -title "HELP" \
-        -message "The parameter files for force field. The file should be provided in par or prm format and include necessary parameters required for NAMD."}] \
-    -row 0 -column 0 -sticky w
-  grid [label $mfamo.para_label -text "Parameter File: "] -row 0 -column 1 -sticky w
-  grid [entry $mfamo.para_path -width 28 \
-      -textvariable ::comd::para_file] \
-    -row 0 -column 2 -columnspan 4 -sticky ew
-  grid [button $mfamo.para_browse -text "Browse" -width 6 -pady 1 -command {
-      set tempfile [tk_getOpenFile \
-                    -filetypes {{"Parameter files" { .par .PAR .prm .PRM }} {"All files" *}}]
-      if {![string equal $tempfile ""]} {
-        set ::comd::para_file $tempfile
-      } }] \
-    -row 0 -column 6 -sticky w
+  # Parameter File
+#  grid [button $mfamo.para_help -text "?" -padx 0 -pady 0 -command {
+#      tk_messageBox -type ok -title "HELP" \
+#        -message "The parameter files for force field. The file should be provided in par or prm format and include necessary parameters required for NAMD."}] \
+#    -row 0 -column 0 -sticky w
+#  grid [label $mfamo.para_label -text "Parameter File: "] -row 0 -column 1 -sticky w
+#  grid [entry $mfamo.para_path -width 28 \
+#      -textvariable ::comd::para_file] \
+#    -row 0 -column 2 -columnspan 4 -sticky ew
+#  grid [button $mfamo.para_browse -text "Browse" -width 6 -pady 1 -command {
+#      set tempfile [tk_getOpenFile \
+#                    -filetypes {{"Parameter files" { .par .PAR .prm .PRM }} {"All files" *}}]
+#      if {![string equal $tempfile ""]} {
+#        set ::comd::para_file $tempfile
+#      } }] \
+#    -row 0 -column 6 -sticky w
   
   #Temperature and minimization length parameters
   grid [button $mfamo.temperature_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The temperature for molecular dynamics simulation needs to be entered. The units are in Kelvin."}] \
-    -row 1 -column 0 -sticky w
+    -row 0 -column 0 -sticky w
   grid [label $mfamo.temperature_label -text "Temperature (K): "] \
-    -row 1 -column 1 -sticky w
+    -row 0 -column 1 -sticky w
   grid [entry $mfamo.temperature_entry -width 6 \
     -textvariable ::comd::temperature] \
-    -row 1 -column 2 -sticky ew
+    -row 0 -column 2 -sticky ew
 
-  grid [label $mfamo.separatpr_label -text "      "] \
-    -row 1 -column 3 -sticky w
+  grid [label $mfamo.separatpr_label -text "     "] \
+    -row 0 -column 3 -sticky w
 
   grid [button $mfamo.length_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "After running targeted molecular dynamics simulations the final structure needs to be equilibrated into a stable state. Longer minimization creates 
         more stable structures which will guarantee users have a stable targeted molecular dynamics simulation. The units are in ps. "}] \
-    -row 1 -column 4 -sticky w
+    -row 0 -column 4 -sticky w
   grid [label $mfamo.length_label -text "Minimization length (ps): "] \
-    -row 1 -column 5 -sticky w
+    -row 0 -column 5 -sticky w
   grid [entry $mfamo.length_entry -width 3 \
     -textvariable ::comd::min_length] \
-    -row 1 -column 6 -sticky ew
+    -row 0 -column 6 -sticky ew
   
+  #Parameter files
+  grid [button $mfamo.para_help -text "?" -padx 0 -pady 0 -command {
+      tk_messageBox -type ok -title "HELP" \
+        -message "Multiple parameter files can be specified for the force field.
+        The file should be provided in par or prm format and include necessary parameters required for NAMD."}] \
+    -row 1 -column 0 -sticky w
+  grid [label $mfamo.para_label -text "Parameter Files:"] \
+    -row 1 -column 1 -sticky w
+  grid [frame $mfamo.para_frame] \
+    -row 1 -column 2 -rowspan 2 -columnspan 1 -sticky w
+  scrollbar $mfamo.para_frame.scroll -command "$mfamo.para_frame.list yview"
+  listbox $mfamo.para_frame.list -activestyle dotbox \
+    -yscroll "$mfamo.para_frame.scroll set" \
+    -width 37 -height 3 -setgrid 1 -selectmode browse \
+    -listvariable ::comd::para_file
+  frame $mfamo.para_frame.buttons
+  pack $mfamo.para_frame.list $mfamo.para_frame.scroll \
+    -side left -fill y -expand 1
+
+  grid [button $mfamo.para_add -text "Add" -width 6 -pady 1 \
+        -command [namespace code {
+        set tempfiles [tk_getOpenFile -multiple 1\
+          -filetypes { {{Parameter files} {.par .PAR .prm .PRM}} {{All files} {*}} }]
+        if {$tempfiles!=""} {
+          foreach tempfile $tempfiles {
+            if {[lsearch $::comd::para_file $tempfile] > -1} {
+              tk_messageBox -type ok -title "WARNING" \
+                -message "$tempfile has already been added to the list."
+            } else {
+              lappend ::comd::para_file $tempfile
+            }
+          }
+        }
+      }]] \
+    -row 1 -column 5 -sticky w
+  grid [button $mfamo.para_delete -text "Remove"  -width 6 -pady 1 \
+      -command [namespace code {
+      foreach i [.comdgui.main_frame.process.input_files.para_frame.list curselection] {
+        .comdgui.main_frame.process.input_files.para_frame.list delete $i
+      } }]] \
+    -row 2 -column 5 -sticky w
 
   pack $mfamo -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
@@ -577,7 +661,7 @@ proc ::comd::Prepare_system {} {
   # (1)   solvate the protein, or everything in the PDB/PSF files that you provide
   # (2)   add counter ions to neutralize the system
   # (3)   adjust the water/probe ratio to a predefined level (1 probe to 20 water)
-  # (4)   write output files for each simula tion
+  # (4)   write output files for each simulation
   #       Setups of multiple simulations differ only at random number seeds.
   #       This will be sufficient to result in a different trajectory.
   variable w
@@ -766,11 +850,11 @@ proc ::comd::Prepare_system {} {
   set fylen [expr {$fymax-$fymin+16.0}]
   set fzlen [expr {$fzmax-$fzmin+16.0}]
   
-    ####### INITIAL MINIMIZATION OF INITIAL PROTEIN STRUCTURE #######
+  ####### INITIAL MINIMIZATION OF INITIAL PROTEIN STRUCTURE #######
 
   # Initial minimization
   #set status [exec bash "${sh_filename}"]
-  #puts $log_file "Simulation: NAMD configuration files for minimization are written into folder $output_prefix$minfix."
+  puts $log_file "Simulation: NAMD configuration files for minimization are written into folder $output_prefix$minfix."
 
   if {$para_file == ""} {
     set para_file "${COMD_PATH}/par_all27_prot_lipid.prm"
@@ -799,7 +883,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set outputname initial_minimized0\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
-  puts $tcl_file "puts \$namd_file \"parameters ../parameter_file.prm\""
+
+  foreach tempfile $para_file {
+    puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
+  }
+
   puts $tcl_file "puts \$namd_file \"temperature \\\$temperature\""
   puts $tcl_file "puts \$namd_file \"cellBasisVector1 ${ixlen},0,0\""
   puts $tcl_file "puts \$namd_file \"cellBasisVector2 0,${iylen},0\""
@@ -838,7 +926,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set outputname final_minimized0\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
-  puts $tcl_file "puts \$namd_file \"parameters ../parameter_file.prm\""
+
+  foreach tempfile $para_file {
+    puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
+  } 
+ 
   puts $tcl_file "puts \$namd_file \"temperature \\\$temperature\""
   puts $tcl_file "puts \$namd_file \"cellBasisVector1 ${fxlen},0,0\""
   puts $tcl_file "puts \$namd_file \"cellBasisVector2 0,${fylen},0\""
@@ -986,7 +1078,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set outputname initial_process\$\{cycle\}\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
-  puts $tcl_file "puts \$namd_file \"parameters ../parameter_file.prm\""
+
+  foreach tempfile $para_file {
+    puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
+  }
+
   puts $tcl_file "puts \$namd_file \"set restartname res\""
   puts $tcl_file "puts \$namd_file \"bincoordinates ..\/${output_prefix}_inimin\/initial_minimized\$\{cycle\}.coor\""
   puts $tcl_file "puts \$namd_file \"binvelocities ..\/${output_prefix}_inimin\/initial_minimized\$\{cycle\}.vel\""
@@ -1036,7 +1132,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set outputname final_process\$\{cycle\}\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
-  puts $tcl_file "puts \$namd_file \"parameters ../parameter_file.prm\""
+
+  foreach tempfile $para_file {
+    puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
+  }
+
   puts $tcl_file "puts \$namd_file \"set restartname res\""
   puts $tcl_file "puts \$namd_file \"bincoordinates ..\/${output_prefix}_finmin\/final_minimized\$\{cycle\}.coor\""
   puts $tcl_file "puts \$namd_file \"binvelocities ..\/${output_prefix}_finmin\/final_minimized\$\{cycle\}.vel\""
@@ -1099,7 +1199,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set outputname initial_minimized\[expr \$\{cycle\}+1\]\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
-  puts $tcl_file "puts \$namd_file \"parameters ../parameter_file.prm\""
+
+  foreach tempfile $para_file {
+    puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
+  }
+
   puts $tcl_file "puts \$namd_file \"set restartname res\""
   puts $tcl_file "puts \$namd_file \"bincoordinates ..\/${output_prefix}_inipro\/initial_process\$\{cycle\}.coor\""
   puts $tcl_file "puts \$namd_file \"binvelocities ..\/${output_prefix}_inipro\/initial_process\$\{cycle\}.vel\""
@@ -1144,7 +1248,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set outputname final_minimized\[expr \$\{cycle\}+1\]\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
-  puts $tcl_file "puts \$namd_file \"parameters ../parameter_file.prm\""
+
+  foreach tempfile $para_file {
+    puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
+  }
+ 
   puts $tcl_file "puts \$namd_file \"set restartname res\""
   puts $tcl_file "puts \$namd_file \"bincoordinates ..\/${output_prefix}_finpro\/final_process\$\{cycle\}.coor\""
   puts $tcl_file "puts \$namd_file \"binvelocities ..\/${output_prefix}_finpro\/final_process\$\{cycle\}.vel\""
@@ -1209,16 +1317,24 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set status \[catch \{exec mv initr.dcd initial_trajectory.dcd\} output\]" 
   puts $tcl_file "set status \[catch \{exec mv fintr.dcd final_trajectory.dcd\} output\]" 
   close $tcl_file
-  file delete prop.pdb
-  file delete pro.pdb
-  file delete pro.psf
+  file delete pro_formatted.pdb
+  file delete pro_formatted_autopsf.pdb
+  file delete pro_formatted_autopsf.psf
+  file delete pro_formatted_autopsf.log
   file delete pro_wb.psf
   file delete pro_wb.pdb
   file delete pro_wb.log
   file delete fino.pdb
   file delete init.pdb
-  file copy -force $topo_file $outputdir/topology_file.top
-  file copy -force $para_file $outputdir/parameter_file.prm
+
+  foreach tempfile $topo_file {
+    file copy -force $tempfile $outputdir/
+  }
+
+  foreach tempfile $para_file {
+    file copy -force $tempfile $outputdir/
+  }
+
   file copy -force $COMD_PATH/anmmc.py $outputdir/anmmc.py
 
   #source $tcl_file_name

@@ -471,7 +471,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
 
   grid [button $mfamc.accept_para_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "The acceptance parameter in ANM-MC steps. Default and suggested value is 0.1."}] \
+        -message "The starting value for the acceptance parameter in ANM-MC steps. Default and suggested value is 0.1."}] \
     -row 1 -column 0 -sticky w
   grid [label $mfamc.accept_para_label -text "Acceptance parameter: "] \
     -row 1 -column 1 -sticky w

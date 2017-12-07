@@ -122,7 +122,8 @@ for k in range(N):
 		Ep = En
 	else:
 		count1 += 1
-	print En
+	#print En
+
 	if (mod(k,25)==0 and not(k==0)):
 	# 	print k
 	# 	print count2
@@ -134,9 +135,11 @@ for k in range(N):
 	 		accept_para*=1.5;
 	 	elif count2*1.0/count1<0.85:
 	 		accept_para/=1.5
+
 	coord_diff = pdb_ca.getCoords() - pdb_ca_ini.getCoords()
-	print linalg.norm(coord_diff.ravel())
-	if linalg.norm(coord_diff.ravel())	> stepcutoff: 
+	sys.stdout.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\n')
+
+	if linalg.norm(coord_diff.ravel()) > stepcutoff: 
 		break
 		
 	ensemble.addCoordset(pdb_ca.getCoords())
@@ -144,6 +147,7 @@ for k in range(N):
 ensemble_final.addCoordset(pdb_ca.getCoords())
 	
 writeDCD(initial_pdb + '_' + final_pdbn + '_final_structure.dcd', ensemble_final)
+writeDCD(initial_pdb + '_' + final_pdbn + '_ensemble.dcd', ensemble)
 ratios = [count2*1.0/N, count2*1.0/count1 if count1 != 0 else 0, count2, k, accept_para ]
 savetxt(initial_pdb + '_ratio.dat', ratios)
 

@@ -627,11 +627,11 @@ proc ::comd::Prepare_system {} {
 
   #set percent_total [expr $percent_acam + $percent_ibut + $percent_ipro + $percent_acetipam]
 
-  if {$solvent_padding < 4} {
-    tk_messageBox -type ok -title "ERROR" \
-      -message "Solvent box padding parameter must be larger than 4 A."
-    return
-  }
+#  if {$solvent_padding < 4} {
+#    tk_messageBox -type ok -title "ERROR" \
+#      -message "Solvent box padding parameter must be larger than 4 A."
+#    return
+#  }
 
   if {[string length [string trim $output_prefix]] == 0} {
     tk_messageBox -type ok -title "ERROR" \

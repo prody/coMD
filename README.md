@@ -7,7 +7,7 @@ analysis of simulations described in Gur et al., 2013.
 Homepage
 --------
 
-http://prody.csb.pitt.edu/coMD/
+http://prody.csb.pitt.edu/comd/
 
 Citation
 --------

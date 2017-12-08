@@ -286,9 +286,9 @@ proc ::comd::comdgui {} {
   #Solvation box padding and counter ions
   grid [button $mfaio.padding_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "This is the half of the initial distance between the protein\
-and its imaginary copies under periodic boundary conditions. For systems with\
-probes, the resulting padding distance will be slightly larger, due to\
+        -message "This is the half of the initial distance between the protein \
+and its imaginary copies under periodic boundary conditions. For systems with \
+probes, the resulting padding distance will be slightly larger, due to \
 constraint of preserving the ratio of 20 water molecules per probe molecule."}] \
     -row 0 -column 0 -sticky w
   grid [label $mfaio.padding_label -text "Box padding (A): "] \
@@ -650,7 +650,7 @@ proc ::comd::Prepare_system {} {
 
   # WHAT IS NEW?
   # 2.1 - Bug fixes, and file checks
-  # 2.0 - Allows setup of systems containing multiple probe tybes
+  # 2.0 - Allows setup of systems containing multiple probe types
   # 2.0 - Improved system setup provides lesser number of solvent atoms
   # 2.0 - Cleans up intermediate files
   # 2.0 - Outputs a log file for trouble shooting, and further intstructions
@@ -796,8 +796,7 @@ proc ::comd::Prepare_system {} {
   set izlen [expr {$izmax-$izmin+16}]
 
 
-    ####### SOLVATION AND IONIZATION OF FINAL PROTEIN STRUCTURE #######
-
+  ####### SOLVATION AND IONIZATION OF FINAL PROTEIN STRUCTURE #######
   resetpsf
   mol delete all
   mol new $final_pdb
@@ -818,18 +817,18 @@ proc ::comd::Prepare_system {} {
     # number of CL and NA atoms are determined
     puts $log_file "Ionization: Final PDB System has a total charge of $totalcharge electrons."
     if {$totalcharge > 0} {
-        set nna 0
-        set ncl [expr round($totalcharge)]
-        puts $log_file "Ionization: $ncl chloride ions will be added to final PDB."
+      set nna 0
+      set ncl [expr round($totalcharge)]
+      puts $log_file "Ionization: $ncl chloride ions will be added to final PDB."
     } else {
-        set ncl 0
-        set nna [expr -1 * round($totalcharge)]
-        puts $log_file "Ionization: $nna sodium ions will be added to final PDB."
+      set ncl 0
+      set nna [expr -1 * round($totalcharge)]
+      puts $log_file "Ionization: $nna sodium ions will be added to final PDB."
     }
     if {$ncl > 0 | $nna > 0} {
-        autoionize -psf pro_wb.psf -pdb pro_wb.pdb \
-        -o [file join ${outputdir} "final_ionized"] -from 5 -between 5 -ncl $ncl -nna $nna -seg ION
-        puts $log_file "Ionization: Final PDB System is ionized to become neutral."
+      autoionize -psf pro_wb.psf -pdb pro_wb.pdb \
+      -o [file join ${outputdir} "final_ionized"] -from 5 -between 5 -ncl $ncl -nna $nna -seg ION
+      puts $log_file "Ionization: Final PDB System is ionized to become neutral."
     }
   }
 
@@ -850,9 +849,9 @@ proc ::comd::Prepare_system {} {
   set fylen [expr {$fymax-$fymin+16.0}]
   set fzlen [expr {$fzmax-$fzmin+16.0}]
   
-  ####### INITIAL MINIMIZATION OF INITIAL PROTEIN STRUCTURE #######
+  ####### INITIAL MINIMIZATION OF STARTING PROTEIN STRUCTURES #######
 
-  # Initial minimization
+  # Initial structure minimization
   #set status [exec bash "${sh_filename}"]
   puts $log_file "Simulation: NAMD configuration files for minimization are written into folder $output_prefix$minfix."
 
@@ -917,7 +916,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"minimize [expr $min_length*500]\""
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
-  
+   
+  # Final structure minimization
   puts $tcl_file "file mkdir \"${output_prefix}_finmin\""
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_finmin\" \"min.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/final_ionized.pdb\""
@@ -929,8 +929,8 @@ proc ::comd::Prepare_system {} {
 
   foreach tempfile $para_file {
     puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
-  } 
- 
+  }
+
   puts $tcl_file "puts \$namd_file \"temperature \\\$temperature\""
   puts $tcl_file "puts \$namd_file \"cellBasisVector1 ${fxlen},0,0\""
   puts $tcl_file "puts \$namd_file \"cellBasisVector2 0,${fylen},0\""
@@ -960,6 +960,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"minimize [expr $min_length*500]\""
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
+  
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_inimin\""
   puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\"" 
@@ -990,8 +991,9 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set all_rmsd(0) \$rmsd"
   puts $tcl_file "puts \$rmsd"
 
-  puts $tcl_file "file mkdir ${output_prefix}_inipro"
+  puts $tcl_file "file mkdir ${output_prefix}_inipro" 
   puts $tcl_file "file mkdir ${output_prefix}_finpro"
+
   #loop start
   puts $tcl_file "for {set cycle 0} {\$cycle < ${comd_cycle}} {incr cycle} {"
   puts $tcl_file "mol delete all"
@@ -1199,11 +1201,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set outputname initial_minimized\[expr \$\{cycle\}+1\]\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
-
+  
   foreach tempfile $para_file {
     puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
   }
-
+  
   puts $tcl_file "puts \$namd_file \"set restartname res\""
   puts $tcl_file "puts \$namd_file \"bincoordinates ..\/${output_prefix}_inipro\/initial_process\$\{cycle\}.coor\""
   puts $tcl_file "puts \$namd_file \"binvelocities ..\/${output_prefix}_inipro\/initial_process\$\{cycle\}.vel\""
@@ -1248,11 +1250,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set outputname final_minimized\[expr \$\{cycle\}+1\]\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
-
+  
   foreach tempfile $para_file {
     puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
   }
- 
+
   puts $tcl_file "puts \$namd_file \"set restartname res\""
   puts $tcl_file "puts \$namd_file \"bincoordinates ..\/${output_prefix}_finpro\/final_process\$\{cycle\}.coor\""
   puts $tcl_file "puts \$namd_file \"binvelocities ..\/${output_prefix}_finpro\/final_process\$\{cycle\}.vel\""
@@ -1314,6 +1316,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$rmsd"
   puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\$\{cycle\}\) - \$all_rmsd\(\[expr \$\{cycle\}+1\]\)\]\ < 0.15 \)\} \{ break \}"
   puts $tcl_file "}"
+  #end of loop started on line 1005
   puts $tcl_file "set status \[catch \{exec mv initr.dcd initial_trajectory.dcd\} output\]" 
   puts $tcl_file "set status \[catch \{exec mv fintr.dcd final_trajectory.dcd\} output\]" 
   close $tcl_file

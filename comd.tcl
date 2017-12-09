@@ -853,7 +853,7 @@ proc ::comd::Prepare_system {} {
 
   # Initial structure minimization
   #set status [exec bash "${sh_filename}"]
-  puts $log_file "Simulation: NAMD configuration files for minimization are written into folder $output_prefix$minfix."
+  #puts $log_file "Simulation: NAMD configuration files for minimization are written into folder $output_prefix$minfix."
 
   if {$para_file == ""} {
     set para_file "${COMD_PATH}/par_all27_prot_lipid.prm"

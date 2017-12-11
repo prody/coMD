@@ -67,7 +67,9 @@ namespace eval ::comd:: {
   variable final_chid 
   # Ionization parameters
   variable topo_file 
-  variable solvent_padding 
+  variable solvent_padding_x
+  variable solvent_padding_y
+  variable solvent_padding_z
   variable neutralize 
   # Minimization parameters
   variable para_file 
@@ -210,16 +212,16 @@ proc ::comd::comdgui {} {
         -message "The initial protein structure should be given in the standard PDB format."}] \
     -row 1 -column 0 -sticky w
   grid [label $mfaif.psf_label -text "Initial PDB: "] -row 1 -column 1 -sticky w
-  grid [entry $mfaif.psf_path -width 28 \
+  grid [entry $mfaif.psf_path -width 38 \
       -textvariable ::comd::initial_pdb] \
-    -row 1 -column 2 -columnspan 4 -sticky ew
+    -row 1 -column 2 -columnspan 5 -sticky ew
   grid [button $mfaif.psf_browse -text "Browse" -width 6 -pady 1 -command {
       set tempfile [tk_getOpenFile \
                     -filetypes {{"PDB files" { .pdb .PDB }} {"All files" *}}]
       if {![string equal $tempfile ""]} {
         set ::comd::initial_pdb $tempfile
       } }] \
-    -row 1 -column 6 -sticky w
+    -row 1 -column 7 -sticky w
        
   # Final PDB
   grid [button $mfaif.pdb_help -text "?" -padx 0 -pady 0 -command {
@@ -228,16 +230,16 @@ proc ::comd::comdgui {} {
     -row 2 -column 0 -sticky w
   grid [label $mfaif.pdb_label -text "Final PDB: "] \
     -row 2 -column 1 -sticky w
-  grid [entry $mfaif.pdb_path -width 28 \
+  grid [entry $mfaif.pdb_path -width 38 \
       -textvariable ::comd::final_pdb] \
-    -row 2 -column 2 -columnspan 4 -sticky ew
+    -row 2 -column 2 -columnspan 5 -sticky ew
   grid [button $mfaif.pdb_browse -text "Browse" -width 6 -pady 1 -command {
         set tempfile [tk_getOpenFile \
           -filetypes {{"PDB files" { .pdb .PDB }} {"All files" *}}]
         if {![string equal $tempfile ""]} {
           set ::comd::final_pdb $tempfile
         } }] \
-    -row 2 -column 6 -sticky w
+    -row 2 -column 7 -sticky w
 
   grid [button $mfaif.inich_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
@@ -245,19 +247,19 @@ proc ::comd::comdgui {} {
     -row 3 -column 0 -sticky w
   grid [label $mfaif.inich_label -text "Initial PDB chain ID: "] \
     -row 3 -column 1 -sticky w
-  grid [entry $mfaif.inich_entry -width 6 \
+  grid [entry $mfaif.inich_entry -width 10 \
     -textvariable ::comd::initial_chid] \
     -row 3 -column 2 -sticky ew  
 
-  #grid [button $mfaif.finch_help -text "?" -padx 0 -pady 0 -command {
-  #    tk_messageBox -type ok -title "HELP" \
+  grid [button $mfaif.finch_help -text "?" -padx 0 -pady 0 -command {
+      tk_messageBox -type ok -title "HELP" \
         -message "The chain ID for the initial structure which should be in the previously imported PDB file."}] \
     -row 3 -column 4 -sticky w
   grid [label $mfaif.finch_label -text "Final PDB chain ID: "] \
-    -row 3 -column 4 -columnspan 2 -sticky w
-  grid [entry $mfaif.finch_entry -width 6 \
+    -row 3 -column 5 -columnspan 2 -sticky w
+  grid [entry $mfaif.finch_entry -width 10 \
     -textvariable ::comd::final_chid] \
-    -row 3 -column 6 -sticky ew
+    -row 3 -column 7 -sticky ew
   
     
   pack $mfaif -side top -ipadx 0 -ipady 5 -fill x -expand 1
@@ -293,24 +295,30 @@ constraint of preserving the ratio of 20 water molecules per probe molecule."}] 
     -row 0 -column 0 -sticky w
   grid [label $mfaio.padding_label -text "Box padding (A): "] \
     -row 0 -column 1 -sticky w
-  grid [entry $mfaio.padding_entry -width 6 \
-    -textvariable ::comd::solvent_padding] \
+  grid [entry $mfaio.padding_entry_x -width 1 \
+    -textvariable ::comd::solvent_padding_x] \
     -row 0 -column 2 -sticky ew
+  grid [entry $mfaio.padding_entry_y -width 1 \
+    -textvariable ::comd::solvent_padding_y] \
+    -row 0 -column 3 -sticky ew
+  grid [entry $mfaio.padding_entry_z -width 1 \
+    -textvariable ::comd::solvent_padding_z] \
+    -row 0 -column 4 -sticky ew
 
   grid [label $mfaio.separatpr_label -text "     "] \
-    -row 1 -column 3 -sticky w
+    -row 1 -column 5 -sticky w
 
   grid [button $mfaio.neutralize_help -text "?" -padx 0 -pady 0 -command {
     tk_messageBox -type ok -title "HELP" \
       -message "By default, counter ions will be added to neutralize a charged\
 system. A charged system (if the protein is charged) may be obtained by unchecking this option."}] \
-    -row 0 -column 4 -sticky w
-  grid [label $mfaio.neutralize_label \
-      -text "Add counter ions: "] \
-    -row 0 -column 5 -sticky w
-  grid [checkbutton $mfaio.neutralize_check -text "" \
-      -variable ::comd::neutralize] \
     -row 0 -column 6 -sticky w
+  grid [label $mfaio.neutralize_label \
+      -text "Add counter ions:          "] \
+    -row 0 -column 7 -sticky w
+  grid [checkbutton $mfaio.neutralize_check \
+      -variable ::comd::neutralize] \
+    -row 0 -column 8 -sticky w
 
   pack $mfaio -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
@@ -321,22 +329,22 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
         from given static structure this will create bonds, angles and various structural elements based on \
         topology parameters provided. Suggested file extension is .top but others will be accepted. "}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfaio.topo_label -text "Topology Files:"] \
+  grid [label $mfaio.topo_label -text "Topology Files: "] \
     -row 1 -column 1 -sticky w
   grid [frame $mfaio.topo_frame] \
-    -row 1 -column 2 -rowspan 2 -columnspan 1 -sticky w
+    -row 1 -column 2 -rowspan 2 -columnspan 3 -sticky w
   scrollbar $mfaio.topo_frame.scroll -command "$mfaio.topo_frame.list yview"
   listbox $mfaio.topo_frame.list -activestyle dotbox \
     -yscroll "$mfaio.topo_frame.scroll set" \
-    -width 37 -height 3 -setgrid 1 -selectmode browse \
+    -width 21 -height 3 -setgrid 1 -selectmode browse \
     -listvariable ::comd::topo_file
   frame $mfaio.topo_frame.buttons
   pack $mfaio.topo_frame.list $mfaio.topo_frame.scroll \
     -side left -fill y -expand 1
 
-  grid [button $mfaio.topo_add -text "Add" -width 6 -pady 1 \
+  grid [button $mfaio.topo_add -text "Add" -width 21 -pady 1 \
         -command [namespace code {
-        set tempfiles [tk_getOpenFile -multiple 1\
+        set tempfiles [tk_getOpenFile -multiple 1 \
           -filetypes { {{Topology files} {.top .TOP .rtf .RTF}} {{All files} {*}} }]
         if {$tempfiles!=""} {
           foreach tempfile $tempfiles {
@@ -349,13 +357,13 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
           }
         }
       }]] \
-    -row 1 -column 5 -sticky w
-  grid [button $mfaio.topo_delete -text "Remove"  -width 6 -pady 1 \
+    -row 1 -column 6 -columnspan 4 -sticky w
+  grid [button $mfaio.topo_delete -text "Remove"  -width 21 -pady 1 \
       -command [namespace code {
       foreach i [.comdgui.main_frame.process.input_files.topo_frame.list curselection] {
         .comdgui.main_frame.process.input_files.topo_frame.list delete $i
       } }]] \
-    -row 2 -column 5 -sticky w
+    -row 2 -column 6 -columnspan 4 -sticky w
 
   # Enter minimization options
   set mfamo [labelframe $mfa.minimize_options -text "Minimization parameters" -bd 2]
@@ -383,7 +391,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
     -row 0 -column 0 -sticky w
   grid [label $mfamo.temperature_label -text "Temperature (K): "] \
     -row 0 -column 1 -sticky w
-  grid [entry $mfamo.temperature_entry -width 6 \
+  grid [entry $mfamo.temperature_entry \
     -textvariable ::comd::temperature] \
     -row 0 -column 2 -sticky ew
 
@@ -397,7 +405,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
     -row 0 -column 4 -sticky w
   grid [label $mfamo.length_label -text "Minimization length (ps): "] \
     -row 0 -column 5 -sticky w
-  grid [entry $mfamo.length_entry -width 3 \
+  grid [entry $mfamo.length_entry -width 5 \
     -textvariable ::comd::min_length] \
     -row 0 -column 6 -sticky ew
   
@@ -407,22 +415,22 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
         -message "Multiple parameter files can be specified for the force field.
         The file should be provided in par or prm format and include necessary parameters required for NAMD."}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfamo.para_label -text "Parameter Files:"] \
+  grid [label $mfamo.para_label -text "Parameter Files :"] \
     -row 1 -column 1 -sticky w
   grid [frame $mfamo.para_frame] \
     -row 1 -column 2 -rowspan 2 -columnspan 1 -sticky w
   scrollbar $mfamo.para_frame.scroll -command "$mfamo.para_frame.list yview"
   listbox $mfamo.para_frame.list -activestyle dotbox \
     -yscroll "$mfamo.para_frame.scroll set" \
-    -width 37 -height 3 -setgrid 1 -selectmode browse \
+    -width 21 -height 3 -setgrid 1 -selectmode browse \
     -listvariable ::comd::para_file
   frame $mfamo.para_frame.buttons
   pack $mfamo.para_frame.list $mfamo.para_frame.scroll \
     -side left -fill y -expand 1
 
-  grid [button $mfamo.para_add -text "Add" -width 6 -pady 1 \
+  grid [button $mfamo.para_add -text "Add" -width 21 -pady 1 \
         -command [namespace code {
-        set tempfiles [tk_getOpenFile -multiple 1\
+        set tempfiles [tk_getOpenFile -multiple 1 \
           -filetypes { {{Parameter files} {.par .PAR .prm .PRM}} {{All files} {*}} }]
         if {$tempfiles!=""} {
           foreach tempfile $tempfiles {
@@ -435,13 +443,13 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
           }
         }
       }]] \
-    -row 1 -column 5 -sticky w
-  grid [button $mfamo.para_delete -text "Remove"  -width 6 -pady 1 \
+    -row 1 -column 4 -columnspan 4 -sticky w
+  grid [button $mfamo.para_delete -text "Remove"  -width 21 -pady 1 \
       -command [namespace code {
       foreach i [.comdgui.main_frame.process.input_files.para_frame.list curselection] {
         .comdgui.main_frame.process.input_files.para_frame.list delete $i
       } }]] \
-    -row 2 -column 5 -sticky w
+    -row 2 -column 4 -columnspan 4 -sticky w
 
   pack $mfamo -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
@@ -678,7 +686,9 @@ proc ::comd::Prepare_system {} {
   variable percent_ibut
   variable percent_acam
   variable percent_acetipam
-  variable solvent_padding
+  variable solvent_padding_x
+  variable solvent_padding_y
+  variable solvent_padding_z
   variable neutralize
   variable output_prefix
   variable comd_cycle
@@ -730,7 +740,7 @@ proc ::comd::Prepare_system {} {
   puts $log_file "---==## [clock format [clock seconds]] #==---"
   puts $log_file "Version: $::comd::version"
   puts $log_file "Info: Logging started for setup of $output_prefix."
-  puts $log_file "Solvation: Box padding $solvent_padding A."
+  puts $log_file "Solvation: Box padding $solvent_padding_x A in x, $solvent_padding_y A in y, $solvent_padding_z A in z."
   
   package require psfgen
   package require solvate
@@ -752,7 +762,9 @@ proc ::comd::Prepare_system {} {
   set topo_file "${COMD_PATH}/top_all27_prot_lipid.top"
   }
   autopsf -mol top -top $topo_file -prefix pro
-  solvate pro_formatted_autopsf.psf pro_formatted_autopsf.pdb -t $solvent_padding -o pro_wb
+  solvate pro_formatted_autopsf.psf pro_formatted_autopsf.pdb \
+    -x $solvent_padding_x -y $solvent_padding_y -z $solvent_padding_z \
+    +x $solvent_padding_x +y $solvent_padding_y +z $solvent_padding_z -o pro_wb
   # DELETE solvated molecule
 
   if {$neutralize} {
@@ -805,7 +817,9 @@ proc ::comd::Prepare_system {} {
   mol delete all
   mol new fino.pdb
   autopsf -mol top -top $topo_file -prefix pro
-  solvate pro_formatted_autopsf.psf pro_formatted_autopsf.pdb -t $solvent_padding -o pro_wb
+  solvate pro_formatted_autopsf.psf pro_formatted_autopsf.pdb \
+    -x $solvent_padding_x -y $solvent_padding_y -z $solvent_padding_z \
+    +x $solvent_padding_x +y $solvent_padding_y +z $solvent_padding_z -o pro_wb
 
   # # DELETE solvated molecule
 
@@ -853,7 +867,8 @@ proc ::comd::Prepare_system {} {
 
   # Initial structure minimization
   #set status [exec bash "${sh_filename}"]
-  #puts $log_file "Simulation: NAMD configuration files for minimization are written into folder $output_prefix$minfix."
+  puts $log_file "Simulation: NAMD configuration files for minimization written in ${output_prefix}_inimin and ${output_prefix}_finmin."
+  close $log_file
 
   if {$para_file == ""} {
     set para_file "${COMD_PATH}/par_all27_prot_lipid.prm"

@@ -213,7 +213,7 @@ proc ::comd::comdgui {} {
     -row 1 -column 0 -sticky w
   grid [label $mfaif.psf_label -text "Initial PDB:          "] \
     -row 1 -column 1 -sticky w
-  grid [entry $mfaif.psf_path -width 40 \
+  grid [entry $mfaif.psf_path -width 35 \
       -textvariable ::comd::initial_pdb] \
     -row 1 -column 2 -columnspan 5 -sticky ew
   grid [button $mfaif.psf_browse -text "Browse" -width 11 -pady 1 -command {
@@ -231,7 +231,7 @@ proc ::comd::comdgui {} {
     -row 2 -column 0 -sticky w
   grid [label $mfaif.pdb_label -text "Final PDB:            "] \
     -row 2 -column 1 -sticky w
-  grid [entry $mfaif.pdb_path -width 40 \
+  grid [entry $mfaif.pdb_path -width 35 \
       -textvariable ::comd::final_pdb] \
     -row 2 -column 2 -columnspan 5 -sticky ew
   grid [button $mfaif.pdb_browse -text "Browse" -width 11 -pady 1 -command {
@@ -252,7 +252,7 @@ proc ::comd::comdgui {} {
     -textvariable ::comd::initial_chid] \
     -row 3 -column 2 -sticky ew  
 
-  grid [label $mfaif.separatpr_label -text "           "] \
+  grid [label $mfaif.separatpr_label -text "        "] \
     -row 3 -column 3 -sticky w
 
   grid [button $mfaif.finch_help -text "?" -padx 0 -pady 0 -command {
@@ -328,7 +328,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
   pack $mfaio.topo_frame.list $mfaio.topo_frame.scroll \
     -side left -fill y -expand 1
 
-  grid [button $mfaio.topo_add -text "Add" -width 25 -pady 1 \
+  grid [button $mfaio.topo_add -text "Add" -width 26 -pady 1 \
         -command [namespace code {
         set tempfiles [tk_getOpenFile -multiple 1 \
           -filetypes { {{Topology files} {.top .TOP .rtf .RTF .str .STR}} {{All files} {*}} }]
@@ -344,7 +344,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
         }
       }]] \
     -row 1 -column 6 -columnspan 4 -sticky w
-  grid [button $mfaio.topo_delete -text "Remove"  -width 25 -pady 1 \
+  grid [button $mfaio.topo_delete -text "Remove"  -width 26 -pady 1 \
       -command [namespace code {
       foreach i [.comdgui.main_frame.process.input_files.topo_frame.list curselection] {
         .comdgui.main_frame.process.input_files.topo_frame.list delete $i
@@ -398,7 +398,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
   pack $mfamo.para_frame.list $mfamo.para_frame.scroll \
     -side left -fill y -expand 1
 
-  grid [button $mfamo.para_add -text "Add" -width 25 -pady 1 \
+  grid [button $mfamo.para_add -text "Add" -width 26 -pady 1 \
         -command [namespace code {
         set tempfiles [tk_getOpenFile -multiple 1 \
           -filetypes { {{Parameter files} {.par .PAR .prm .PRM .str .STR}} {{All files} {*}} }]
@@ -414,7 +414,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
         }
       }]] \
     -row 1 -column 4 -columnspan 4 -sticky w
-  grid [button $mfamo.para_delete -text "Remove"  -width 25 -pady 1 \
+  grid [button $mfamo.para_delete -text "Remove"  -width 26 -pady 1 \
       -command [namespace code {
       foreach i [.comdgui.main_frame.process.input_files.para_frame.list curselection] {
         .comdgui.main_frame.process.input_files.para_frame.list delete $i
@@ -441,7 +441,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
       tk_messageBox -type ok -title "HELP" \
         -message "The scaling factor used when disturbing the protein structure in ANM-MC steps. Default and suggested value is 0.1 A."}] \
     -row 0 -column 4 -sticky w
-  grid [label $mfamc.dev_mag_label -text "Deviation (A):           "] \
+  grid [label $mfamc.dev_mag_label -text "Deviation (A):            "] \
     -row 0 -column 5 -sticky w
   grid [entry $mfamc.dev_mag_field -width 8 \
       -textvariable ::comd::dev_mag] \
@@ -464,7 +464,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
       tk_messageBox -type ok -title "HELP" \
         -message "The maximal number of steps in ANM-MC step. Default and suggested value is 1000000."}] \
     -row 1 -column 4 -sticky w
-  grid [label $mfamc.max_steps_label -text "Max no of ANM steps: "] \
+  grid [label $mfamc.max_steps_label -text "Max no of ANM steps:  "] \
     -row 1 -column 5 -sticky w
   grid [entry $mfamc.max_steps_field -width 8 \
       -textvariable ::comd::max_steps] \
@@ -512,7 +512,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
       tk_messageBox -type ok -title "HELP" \
         -message "The length of targeted molecular dynamics simulations in the units of ps. The length of collective molecular dynamics will change based on the structure and for a structure with 200 residues suggested length is in the order of hundreds."}] \
     -row 0 -column 4 -sticky w
-  grid [label $mfatm.tmd_len_label -text "TMD length (ps):          "] \
+  grid [label $mfatm.tmd_len_label -text "TMD length (ps):           "] \
     -row 0 -column 5 -sticky w
   grid [entry $mfatm.tmd_len_field -width 8 \
       -textvariable ::comd::tmd_len] \
@@ -539,7 +539,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
       tk_messageBox -type ok -title "HELP" \
         -message "The number of physical cores in the cluster or PC that you will run your simulation. NAMD is running parallel on CPUs."}] \
     -row 0 -column 4 -sticky w
-  grid [label $mfaso.num_cores_label -text "No of physical cores:     "] \
+  grid [label $mfaso.num_cores_label -text "No of physical cores:      "] \
     -row 0 -column 5 -sticky w
   grid [entry $mfaso.num_cores -width 8 \
       -textvariable ::comd::num_cores] \
@@ -563,7 +563,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
   grid [entry $mfaoo.outdir_path -width 40 \
       -textvariable ::comd::outputdir] \
     -row 0 -column 2 -columnspan 5 -sticky ew
-  grid [button $mfaoo.dcd_browse -text "Browse" -width 10 -pady 1 -command {
+  grid [button $mfaoo.dcd_browse -text "Browse" -width 11 -pady 1 -command {
       set tempfile [tk_chooseDirectory]
       if {![string equal $tempfile ""]} {
         set ::comd::outputdir $tempfile

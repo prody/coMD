@@ -31,6 +31,9 @@ if len(ar) > 6:
 else:
     N=1000000
 
+original_initial_pdb = ar[-2]
+original_final_pdb = ar[-1]
+
 initial_pdb_id = initial_pdbn.split('.')[0]
 final_pdb_id = final_pdbn.split('.')[0]
 
@@ -40,8 +43,8 @@ initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
 
 # Current Structure 
-pdb_ca = initial_pdb.ca
-stepcutoff = 0.5 * (len(pdb_ca) ** 0.5)
+initial_pdb_ca = initial_pdb.ca
+stepcutoff = 0.5 * (len(initial_pdb_ca) ** 0.5)
 
 # ANM calculation based on current
 if os.path.isfile(initial_pdb_id + '.anm.npz'):
@@ -51,7 +54,7 @@ else:
     # ANM calculation based on current
     pdb_anm = ANM('pdb ca')
     # Build Hessian Matrix
-    pdb_anm.buildHessian(pdb_ca, cutoff=anm_cut)
+    pdb_anm.buildHessian(initial_pdb_ca, cutoff=anm_cut)
     pdb_anm.calcModes(n_modes='all')
     saveModel(pdb_anm,initial_pdb_id,matrices=True)
 
@@ -67,10 +70,10 @@ U = pdb_anm.getEigvecs()
 final_pdb_ca = final_pdb.ca
 
 # Number of residues on protein structure         
-size=pdb_ca.getResnums().shape[0]    
+size=initial_pdb_ca.getResnums().shape[0]    
 
 # Difference between current and final structure 
-deviation = final_pdb_ca.getCoords() - pdb_ca.getCoords()
+deviation = final_pdb_ca.getCoords() - initial_pdb_ca.getCoords()
 
 # Scale factor for steps
 scale_factor = sqrt(abs(devi*min(pdb_anm.getEigvals())))
@@ -99,13 +102,21 @@ else:
     
 # difference from the target structure is defined as the energy and the minimum is zero. 
 native_dist = buildDistMatrix(final_pdb_ca)
-dist = buildDistMatrix(pdb_ca)
+dist = buildDistMatrix(initial_pdb_ca)
 Ep = sum((native_dist - dist)**2)
 
-pdb_ca_ini = pdb_ca.copy()
-ensemble = Ensemble()
-ensemble_final = Ensemble()
+pdb_ca = initial_pdb_ca
 
+ensemble = Ensemble()
+ensemble.setAtoms(initial_pdb_ca)
+ensemble.setCoords(initial_pdb_ca)
+
+ensemble_final = Ensemble()
+ensemble_final.setAtoms(initial_pdb_ca)
+ensemble_final.setCoords(initial_pdb_ca)
+
+step_count = 0
+check_step_counts = [0]
 #exit
 # MC Loop 
 for k in range(N):
@@ -123,7 +134,7 @@ for k in range(N):
     dist = buildDistMatrix(pdb_ca_temp)
     En = sum((native_dist - dist)**2)
 
-    if final_pdb_ca.getCoords() != initial_pdb_ca.getCoords():
+    if original_initial_pdb != original_final_pdb:
         # check whether you are heading the right way
         # and accept uphill moves depending on the
         # Metropolis criterion
@@ -133,11 +144,13 @@ for k in range(N):
             count3 += 1
             pdb_ca = pdb_ca_temp.copy()
             Ep = En
+            step_count += 1
         elif exp(-(En-Ep)*accept_para) > random():
             pdb_ca = pdb_ca_temp.copy() 
             count1 += 1
             count2 += 1
             Ep = En
+            step_count += 1
         else:
             count1 += 1
 
@@ -148,9 +161,12 @@ for k in range(N):
         count1 += 1
         count2 += 1
         Ep = En
+        step_count += 1
 
     if (mod(k,25)==0 and not(k==0)):
-        writeDCD(initial_pdb_id + '_' + final_pdb_id + 'steps' + str(k-25) + 'to' + str(k) + '.dcd',ensemble[k-25:k])
+        check_step_counts.append(step_count)
+        writeDCD(initial_pdb_id + '_' + final_pdb_id + '_steps_' + str(check_step_counts[-2]) + '-' \
+                 + str(check_step_counts[-1]-1) + '.dcd',ensemble[check_step_counts[-2]:check_step_counts[-1]-1])
 
         # Update of the accept_para to keep the MC para reasonable
         # See comment lines 82 to 85. 
@@ -160,7 +176,7 @@ for k in range(N):
             accept_para/=1.5
 
 
-    coord_diff = pdb_ca.getCoords() - pdb_ca_ini.getCoords()
+    coord_diff = pdb_ca.getCoords() - initial_pdb_ca.getCoords()
     fo.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\t' + str(rand) + '\t' + str(ID) + '\n')
 
     if linalg.norm(coord_diff.ravel()) > stepcutoff: 

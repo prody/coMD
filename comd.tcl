@@ -85,7 +85,9 @@ namespace eval ::comd:: {
   variable tmd_len 
   # Simulation options
   variable comd_cycle 
-  variable num_cores 
+  variable num_runs
+  variable num_cores
+  variable gpus_selected
   variable python_path ""
   # output options
   variable outputdir 
@@ -458,7 +460,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
     -row 1 -column 2 -sticky w
 
   grid [label $mfamc.separatpr3_label -text "        "] \
-    -row 0 -column 3 -sticky w
+    -row 1 -column 3 -sticky w
 
   grid [button $mfamc.max_steps_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
@@ -525,25 +527,39 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
 
   grid [button $mfaso.cmd_cyc_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "Each CoMD cycle consists of minimization, ANM-MC-Metropolis distrubance and targeted molecular dynamics. The total number of cycle gives the maximum number of cycles performed before starting and final structures are very close."}] \
+        -message "Each CoMD cycle consists of minimization, ANM-MC-Metropolis disturbances and targeted molecular dynamics. Please choose the maximum number of cycles performed. Fewer cycles may be run if the starting and final structures for a given cycle are very close."}] \
     -row 0 -column 0 -sticky w
   grid [label $mfaso.cmd_cyc_label -text "No of coMD cycles:      "] \
     -row 0 -column 1 -sticky w
   grid [entry $mfaso.cmd_cyc_field -width 20 -textvariable ::comd::comd_cycle] \
     -row 0 -column 2 -sticky w
 
-  grid [label $mfaso.separatpr2_label -text "       "] \
+  grid [label $mfaso.separatpr1_label -text "       "] \
     -row 0 -column 3 -sticky w
 
-  grid [button $mfaso.numcores_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaso.gpu_id_help -text "?" -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "The number of physical cores in the cluster or PC that you will run your simulation. NAMD is running parallel on CPUs."}] \
-    -row 0 -column 4 -sticky w
+        -message "The identifiers for the GPUs that will run your TMD simulation. NAMD can use one GPU per thread and multiple threads can share GPUs."}] \
+    -row 1 -column 0 -sticky w
+  grid [label $mfaso.gpu_id_label -text "GPU IDs:      "] \
+    -row 1 -column 1 -sticky w
+  grid [entry $mfaso.gpu_id_field -width 20 \
+      -textvariable ::comd::gpus_selected] \
+    -row 1 -column 2 -sticky w
+
+  grid [label $mfaso.separatpr2_label -text "       "] \
+    -row 1 -column 3 -sticky w
+
+  grid [button $mfaso.num_cores_help -text "?" -padx 0 -pady 0 -command {
+      tk_messageBox -type ok -title "HELP" \
+        -message "The number of physical cores in the cluster or PC that will run your TMD simulation. NAMD is running parallel on CPUs."}] \
+    -row 1 -column 4 -sticky w
   grid [label $mfaso.num_cores_label -text "No of physical cores:      "] \
-    -row 0 -column 5 -sticky w
+    -row 1 -column 5 -sticky w
   grid [entry $mfaso.num_cores -width 8 \
       -textvariable ::comd::num_cores] \
-    -row 0 -column 6 -columnspan 4 -sticky ew
+    -row 1 -column 6 -columnspan 4 -sticky ew
+
   
   pack $mfaso -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
@@ -668,7 +684,9 @@ proc ::comd::Prepare_system {} {
   variable max_steps 
   variable spring_k
   variable tmd_len
+  variable num_runs
   variable num_cores
+  variable gpus_selected
   variable outputdir
   variable python_path
 
@@ -864,7 +882,7 @@ proc ::comd::Prepare_system {} {
   	puts $tcl_file "set python_path ${python_path}\/python" 
   }
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2]\\\"\""
+  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $[$gpus_selected]\\\"\""
   puts $tcl_file "file mkdir \"${output_prefix}_inimin\""
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_inimin\" \"min.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/initial_ionized.pdb\""
@@ -1063,7 +1081,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2]\\\"\""
+  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $[$gpus_selected]\\\"\""
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_inipro\" \"pro.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/initial_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ..\/initial_ionized.psf\""
@@ -1184,7 +1202,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2]\\\"\""
+  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $[$gpus_selected]\\\"\""
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_inimin\" \"min.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ../initial_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ../initial_ionized.psf\""

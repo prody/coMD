@@ -34,7 +34,7 @@ else:
 initial_pdb_id = initial_pdbn.split('.')[0]
 final_pdb_id = final_pdbn.split('.')[0]
 
-fo = open('anmmc_log.txt','w')
+fo = open('log.txt','w')
 
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)

@@ -123,7 +123,7 @@ for k in range(N):
     dist = buildDistMatrix(pdb_ca_temp)
     En = sum((native_dist - dist)**2)
 
-    if final_pdbn != initial_pdbn:
+    if final_pdb_ca.getCoords() != initial_pdb_ca.getCoords():
         # check whether you are heading the right way
         # and accept uphill moves depending on the
         # Metropolis criterion

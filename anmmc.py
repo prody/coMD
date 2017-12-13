@@ -22,7 +22,7 @@ else:
     devi=0.1
 
 if len(ar) > 5:
-    N=int(ar[5])
+    accept_para=int(ar[5])
 else:
     accept_para=0.1
 
@@ -33,7 +33,8 @@ else:
 
 initial_pdb_id = initial_pdbn.split('.')[0]
 final_pdb_id = final_pdbn.split('.')[0]
-#outfile = '{0}_to_{1}_{2}_{3}_{4}_{5}_{6}'.format(initial_pdb_id,final_pdb_id,anm_cut,devi,runs,spread,N)
+
+fo = open('log.txt','w')
 
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
@@ -45,7 +46,7 @@ stepcutoff = 0.5 * (len(pdb_ca) ** 0.5)
 # ANM calculation based on current
 if os.path.isfile(initial_pdb_id + '.anm.npz'):
     pdb_anm = loadModel(initial_pdb_id + '.anm.npz')
-    sys.stdout.write("ANM model loaded\n")
+    fo.write("ANM model loaded\n")
 else:
     # ANM calculation based on current
     pdb_anm = ANM('pdb ca')
@@ -157,7 +158,7 @@ for k in range(N):
         Ep = En
 
     coord_diff = pdb_ca.getCoords() - pdb_ca_ini.getCoords()
-    sys.stdout.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\t' + str(rand) + '\t' + str(ID) + '\n')
+    fo.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\t' + str(rand) + '\t' + str(ID) + '\n')
 
     if linalg.norm(coord_diff.ravel()) > stepcutoff: 
         break

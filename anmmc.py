@@ -34,7 +34,7 @@ else:
 initial_pdb_id = initial_pdbn.split('.')[0]
 final_pdb_id = final_pdbn.split('.')[0]
 
-fo = open('log.txt','w')
+fo = open('anmmc_log.txt','w')
 
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
@@ -141,14 +141,6 @@ for k in range(N):
         else:
             count1 += 1
 
-        if (mod(k,25)==0 and not(k==0)):
-            # Update of the accept_para to keep the MC para reasonable
-            # See comment lines 82 to 85.
-            if count2/count1 > 0.95:
-                accept_para*=1.5;
-            elif count2/count1 < 0.85:
-                accept_para/=1.5
-
     else:
         # for exploration based on one structure (two runs)
         # all moves are uphill but will be accepted anyway
@@ -156,6 +148,17 @@ for k in range(N):
         count1 += 1
         count2 += 1
         Ep = En
+
+    if (mod(k,25)==0 and not(k==0)):
+        writeDCD(initial_pdb_id + '_' + final_pdb_id + '_steps_' + str(k-25) + 'to' + str(k) + '.dcd',ensemble[k-25:k])
+
+        # Update of the accept_para to keep the MC para reasonable
+        # See comment lines 82 to 85. 
+        if count2/count1 > 0.95:
+            accept_para*=1.5;
+        elif count2/count1 < 0.85:
+            accept_para/=1.5
+
 
     coord_diff = pdb_ca.getCoords() - pdb_ca_ini.getCoords()
     fo.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\t' + str(rand) + '\t' + str(ID) + '\n')

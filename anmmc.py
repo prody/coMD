@@ -189,5 +189,5 @@ ensemble_final.addCoordset(pdb_ca.getCoords())
 writeDCD(initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd', ensemble_final)
 writeDCD(initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd', ensemble)
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
-savetxt(initial_pdb + '_ratio.dat', ratios)
+savetxt(initial_pdb_id + '_ratio.dat', ratios)
 

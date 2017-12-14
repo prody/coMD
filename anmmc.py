@@ -175,7 +175,6 @@ for k in range(N):
         elif count2/count1 < 0.85:
             accept_para/=1.5
 
-
     coord_diff = pdb_ca.getCoords() - initial_pdb_ca.getCoords()
     fo.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\t' + str(rand) + '\t' + str(ID) + '\n')
 

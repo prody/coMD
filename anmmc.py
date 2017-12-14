@@ -176,7 +176,7 @@ for k in range(N):
             accept_para/=1.5
 
     coord_diff = pdb_ca.getCoords() - initial_pdb_ca.getCoords()
-    fo.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\t' + str(rand) + '\t' + str(ID) + '\n')
+    fo.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\t' + str(rand) + '\t' + str(ID) + '\t' + str(k) + '\t' + str(step_count) '\n')
 
     if linalg.norm(coord_diff.ravel()) > stepcutoff: 
         break

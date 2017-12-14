@@ -327,8 +327,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
     -width 18 -height 3 -setgrid 1 -selectmode browse \
     -listvariable ::comd::topo_file
   frame $mfaio.topo_frame.buttons
-  pack $mfaio.topo_frame.list $mfaio.topo_frame.scroll \
-    -side left -fill y -expand 1
+  pack $mfaio.topo_frame.list $mfaio.topo_frame.scroll -side left -fill y -expand 1
 
   grid [button $mfaio.topo_add -text "Add" -width 26 -pady 1 \
         -command [namespace code {
@@ -348,8 +347,8 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
     -row 1 -column 6 -columnspan 4 -sticky w
   grid [button $mfaio.topo_delete -text "Remove"  -width 26 -pady 1 \
       -command [namespace code {
-      foreach i [.comdgui.main_frame.process.input_files.topo_frame.list curselection] {
-        .comdgui.main_frame.process.input_files.topo_frame.list delete $i
+      foreach i [.comdgui.main_frame.prepare.ionize_options.topo_frame.list curselection] {
+        .comdgui.main_frame.prepare.ionize_options.topo_frame.list delete $i
       } }]] \
     -row 2 -column 6 -columnspan 4 -sticky w
 
@@ -418,8 +417,8 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
     -row 1 -column 4 -columnspan 4 -sticky w
   grid [button $mfamo.para_delete -text "Remove"  -width 26 -pady 1 \
       -command [namespace code {
-      foreach i [.comdgui.main_frame.process.input_files.para_frame.list curselection] {
-        .comdgui.main_frame.process.input_files.para_frame.list delete $i
+      foreach i [.comdgui.main_frame.prepare.minimize_options.para_frame.list curselection] {
+        .comdgui.main_frame.prepare.minimize_options.para_frame.list delete $i
       } }]] \
     -row 2 -column 4 -columnspan 4 -sticky w
 

@@ -1344,14 +1344,6 @@ proc ::comd::Prepare_system {} {
   file delete fino.pdb
   file delete init.pdb
 
-  foreach tempfile $topo_file {
-    file copy -force $tempfile $outputdir/
-  }
-
-  foreach tempfile $para_file {
-    file copy -force $tempfile $outputdir/
-  }
-
   file copy -force $COMD_PATH/anmmc.py $outputdir/anmmc.py
 
   #source $tcl_file_name

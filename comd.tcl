@@ -209,63 +209,63 @@ proc ::comd::comdgui {} {
   # Select input files
   set mfaif [labelframe $mfa.input_files -text "Protein structures:" -bd 2]
   # Initial PDB
-  grid [button $mfaif.psf_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaif.ini_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The initial protein structure should be given in the standard PDB format."}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfaif.psf_label -text "Initial PDB:          "] \
+  grid [label $mfaif.ini_label -text "Initial PDB:                      " -width 21] \
     -row 1 -column 1 -sticky w
-  grid [entry $mfaif.psf_path -width 35 \
+  grid [entry $mfaif.ini_path -width 47 \
       -textvariable ::comd::initial_pdb] \
-    -row 1 -column 2 -columnspan 5 -sticky ew
-  grid [button $mfaif.psf_browse -text "Browse" -width 11 -pady 1 -command {
+    -row 1 -column 2 -columnspan 6 -sticky ew
+  grid [button $mfaif.ini_browse -text "Browse" -width 14 -pady 1 -command {
       set tempfile [tk_getOpenFile \
                     -filetypes {{"PDB files" { .pdb .PDB }} {"All files" *}}]
       if {![string equal $tempfile ""]} {
         set ::comd::initial_pdb $tempfile
       } }] \
-    -row 1 -column 6 -sticky w
+    -row 1 -column 8 -columnspan 3 -sticky w
        
   # Final PDB
-  grid [button $mfaif.pdb_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaif.fin_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The final protein structure should be given in the standard PDB format."}] \
     -row 2 -column 0 -sticky w
-  grid [label $mfaif.pdb_label -text "Final PDB:            "] \
+  grid [label $mfaif.fin_label -text "Final PDB:                        " -width 21] \
     -row 2 -column 1 -sticky w
-  grid [entry $mfaif.pdb_path -width 35 \
+  grid [entry $mfaif.fin_path -width 47 \
       -textvariable ::comd::final_pdb] \
-    -row 2 -column 2 -columnspan 5 -sticky ew
-  grid [button $mfaif.pdb_browse -text "Browse" -width 11 -pady 1 -command {
+    -row 2 -column 2 -columnspan 6 -sticky ew
+  grid [button $mfaif.fin_browse -text "Browse" -width 14 -pady 1 -command {
         set tempfile [tk_getOpenFile \
           -filetypes {{"PDB files" { .pdb .PDB }} {"All files" *}}]
         if {![string equal $tempfile ""]} {
           set ::comd::final_pdb $tempfile
         } }] \
-    -row 2 -column 6 -sticky w
+   -row 2 -column 8 -columnspan 3 -sticky w
 
-  grid [button $mfaif.inich_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaif.inich_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The chain ID for the initial and final structure which should be in the previously imported PDB file."}] \
     -row 3 -column 0 -sticky w
-  grid [label $mfaif.inich_label -text "Initial PDB chain ID:     "] \
+  grid [label $mfaif.inich_label -text "Initial PDB chain ID:         " -width 21] \
     -row 3 -column 1 -sticky w
-  grid [entry $mfaif.inich_entry -width 15 \
+  grid [entry $mfaif.inich_entry -width 17 \
     -textvariable ::comd::initial_chid] \
-    -row 3 -column 2 -sticky ew  
+    -row 3 -column 2 -columnspan 3 -sticky ew  
 
-  grid [label $mfaif.separatpr_label -text "        "] \
-    -row 3 -column 3 -sticky w
+  grid [label $mfaif.separatpr_label -width 6] \
+    -row 3 -column 5 -sticky w
 
-  grid [button $mfaif.finch_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaif.finch_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The chain ID for the initial structure which should be in the previously imported PDB file."}] \
-    -row 3 -column 4 -sticky w
-  grid [label $mfaif.finch_label -text "Final PDB chain ID:     "] \
-    -row 3 -column 5 -sticky w
-  grid [entry $mfaif.finch_entry -width 11 \
+    -row 3 -column 6 -sticky w
+  grid [label $mfaif.finch_label -text "Final PDB chain ID:          " -width 21] \
+    -row 3 -column 7 -sticky w
+  grid [entry $mfaif.finch_entry -width 17 \
     -textvariable ::comd::final_chid] \
-    -row 3 -column 6 -sticky ew
+    -row 3 -column 8 -columnspan 3 -sticky ew
   
     
   pack $mfaif -side top -ipadx 0 -ipady 5 -fill x -expand 1
@@ -274,62 +274,63 @@ proc ::comd::comdgui {} {
   set mfaio [labelframe $mfa.ionize_options -text "Ionization parameters" -bd 2]
 
   #Solvation box padding and counter ions
-  grid [button $mfaio.padding_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaio.padding_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "This is the half of the initial distance between the protein \
 and its imaginary copies under periodic boundary conditions. For systems with \
 probes, the resulting padding distance will be slightly larger, due to \
 constraint of preserving the ratio of 20 water molecules per probe molecule."}] \
     -row 0 -column 0 -sticky w
-  grid [label $mfaio.padding_label -text "Box padding (A):         "] \
+  grid [label $mfaio.padding_label -text "Box padding (A):             " -width 21] \
     -row 0 -column 1 -sticky w
-  grid [entry $mfaio.padding_entry_x -width 1 \
+  grid [entry $mfaio.padding_entry_x -width 5 \
     -textvariable ::comd::solvent_padding_x] \
     -row 0 -column 2 -sticky ew
-  grid [entry $mfaio.padding_entry_y -width 1 \
+  grid [entry $mfaio.padding_entry_y -width 5 \
     -textvariable ::comd::solvent_padding_y] \
     -row 0 -column 3 -sticky ew
-  grid [entry $mfaio.padding_entry_z -width 1 \
+  grid [entry $mfaio.padding_entry_z -width 5 \
     -textvariable ::comd::solvent_padding_z] \
     -row 0 -column 4 -sticky ew
 
-  grid [label $mfaio.separatpr_label -text "        "] \
+  grid [label $mfaio.separatpr_label -width 6] \
     -row 1 -column 5 -sticky w
 
-  grid [button $mfaio.neutralize_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaio.neutralize_help -text "?" -width 1 -padx 0 -pady 0 -command {
     tk_messageBox -type ok -title "HELP" \
-      -message "By default, counter ions will be added to neutralize a charged\
+      -message "By default, counter ions will be added to neutralize a charged \
 system. A charged system (if the protein is charged) may be obtained by unchecking this option."}] \
     -row 0 -column 6 -sticky w
-  grid [label $mfaio.neutralize_label \
-      -text "Add counter ions:             "] \
+  grid [label $mfaio.neutralize_label -text "Add counter ions:              " -width 21] \
     -row 0 -column 7 -sticky w
-  grid [checkbutton $mfaio.neutralize_check \
+  grid [label $mfaio.separatpr2_label -width 13] \
+    -row 1 -column 8 -columnspan 2 -sticky w
+  grid [checkbutton $mfaio.neutralize_check -width 1 \
       -variable ::comd::neutralize] \
-    -row 0 -column 8 -sticky w
+    -row 0 -column 10 -sticky e
 
   pack $mfaio -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
   #Topology files
-  grid [button $mfaio.topo_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaio.topo_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "Multiple topology files can be specified that will be given to psfgen package of vmd. Therefore, \
-        from given static structure this will create bonds, angles and various structural elements based on \
-        topology parameters provided. Suggested file extension is .top but others will be accepted. "}] \
+        -message "Multiple topology files can be specified that will be given to psfgen package of vmd. \
+Therefore, from given static structure this will create bonds, angles and various structural elements \
+based on topology parameters provided. Suggested file extension is .top but others will be accepted."}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfaio.topo_label -text "Topology files:   "] \
+  grid [label $mfaio.topo_label -text "Topology files:                  " -width 21] \
     -row 1 -column 1 -sticky w
   grid [frame $mfaio.topo_frame] \
-    -row 1 -column 2 -rowspan 2 -columnspan 3 -sticky w
+    -row 1 -rowspan 6 -column 2 -columnspan 6 -sticky w
   scrollbar $mfaio.topo_frame.scroll -command "$mfaio.topo_frame.list yview"
   listbox $mfaio.topo_frame.list -activestyle dotbox \
     -yscroll "$mfaio.topo_frame.scroll set" \
-    -width 18 -height 3 -setgrid 1 -selectmode browse \
+    -width 45 -height 6 -setgrid 1 -selectmode browse \
     -listvariable ::comd::topo_file
   frame $mfaio.topo_frame.buttons
   pack $mfaio.topo_frame.list $mfaio.topo_frame.scroll -side left -fill y -expand 1
 
-  grid [button $mfaio.topo_add -text "Add" -width 26 -pady 1 \
+  grid [button $mfaio.topo_add -text "Add" -width 14 -pady 1 \
         -command [namespace code {
         set tempfiles [tk_getOpenFile -multiple 1 \
           -filetypes { {{Topology files} {.top .TOP .rtf .RTF .str .STR}} {{All files} {*}} }]
@@ -337,69 +338,69 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
           foreach tempfile $tempfiles {
             if {[lsearch $::comd::topo_file $tempfile] > -1} {
               tk_messageBox -type ok -title "WARNING" \
-                -message "$tempfile has already been added to the list."
+               -message "$tempfile has already been added to the list."
             } else {
               lappend ::comd::topo_file $tempfile
             }
           }
         }
       }]] \
-    -row 1 -column 6 -columnspan 4 -sticky w
-  grid [button $mfaio.topo_delete -text "Remove"  -width 26 -pady 1 \
+    -row 1 -column 8 -columnspan 3 -sticky w
+  grid [button $mfaio.topo_delete -text "Remove"  -width 14 -pady 1 \
       -command [namespace code {
       foreach i [.comdgui.main_frame.prepare.ionize_options.topo_frame.list curselection] {
         .comdgui.main_frame.prepare.ionize_options.topo_frame.list delete $i
       } }]] \
-    -row 2 -column 6 -columnspan 4 -sticky w
+    -row 2 -column 8 -columnspan 3 -sticky w
 
   # Enter minimization options
   set mfamo [labelframe $mfa.minimize_options -text "Minimization parameters" -bd 2]
   
   #Temperature and minimization length parameters
-  grid [button $mfamo.temperature_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfamo.temperature_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The temperature for molecular dynamics simulation needs to be entered. The units are in Kelvin."}] \
     -row 0 -column 0 -sticky w
-  grid [label $mfamo.temperature_label -text "Temperature (K):          "] \
+  grid [label $mfamo.temperature_label -text "Temperature (K):              " -width 21] \
     -row 0 -column 1 -sticky w
-  grid [entry $mfamo.temperature_entry \
+  grid [entry $mfamo.temperature_entry -width 17 \
     -textvariable ::comd::temperature] \
-    -row 0 -column 2 -sticky ew
+    -row 0 -column 2 -columnspan 3 -sticky ew
 
-  grid [label $mfamo.separatpr_label -text "        "] \
-    -row 0 -column 3 -sticky w
+  grid [label $mfamo.separatpr_label -width 6] \
+    -row 0 -column 5 -sticky w
 
-  grid [button $mfamo.length_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfamo.length_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "After running targeted molecular dynamics simulations the final structure needs to be equilibrated into a stable state. Longer minimization creates 
         more stable structures which will guarantee users have a stable targeted molecular dynamics simulation. The units are in ps. "}] \
-    -row 0 -column 4 -sticky w
-  grid [label $mfamo.length_label -text "Minimization length (ps): "] \
-    -row 0 -column 5 -sticky w
-  grid [entry $mfamo.length_entry -width 7 \
+    -row 0 -column 6 -sticky w
+  grid [label $mfamo.length_label -text "Minimization length (ps):   " -width 21] \
+    -row 0 -column 7 -sticky w
+  grid [entry $mfamo.length_entry -width 17 \
     -textvariable ::comd::min_length] \
-    -row 0 -column 6 -sticky ew
+    -row 0 -column 8 -columnspan 3 -sticky ew
   
   #Parameter files
-  grid [button $mfamo.para_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfamo.para_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "Multiple parameter files can be specified for the force field.
         The file should be provided in par or prm format and include necessary parameters required for NAMD."}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfamo.para_label -text "Parameter files :"] \
+  grid [label $mfamo.para_label -text "Parameter files:                " -width 21] \
     -row 1 -column 1 -sticky w
   grid [frame $mfamo.para_frame] \
-    -row 1 -column 2 -rowspan 2 -columnspan 1 -sticky w
+    -row 1 -rowspan 6 -column 2 -columnspan 6 -sticky w
   scrollbar $mfamo.para_frame.scroll -command "$mfamo.para_frame.list yview"
   listbox $mfamo.para_frame.list -activestyle dotbox \
     -yscroll "$mfamo.para_frame.scroll set" \
-    -width 18 -height 3 -setgrid 1 -selectmode browse \
+    -width 45 -height 6 -setgrid 1 -selectmode browse \
     -listvariable ::comd::para_file
   frame $mfamo.para_frame.buttons
   pack $mfamo.para_frame.list $mfamo.para_frame.scroll \
     -side left -fill y -expand 1
 
-  grid [button $mfamo.para_add -text "Add" -width 26 -pady 1 \
+  grid [button $mfamo.para_add -text "Add" -width 14 -pady 1 \
         -command [namespace code {
         set tempfiles [tk_getOpenFile -multiple 1 \
           -filetypes { {{Parameter files} {.par .PAR .prm .PRM .str .STR}} {{All files} {*}} }]
@@ -414,66 +415,68 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
           }
         }
       }]] \
-    -row 1 -column 4 -columnspan 4 -sticky w
-  grid [button $mfamo.para_delete -text "Remove"  -width 26 -pady 1 \
+    -row 1 -column 8 -columnspan 3 -sticky w
+  grid [button $mfamo.para_delete -text "Remove"  -width 14 -pady 1 \
       -command [namespace code {
       foreach i [.comdgui.main_frame.prepare.minimize_options.para_frame.list curselection] {
         .comdgui.main_frame.prepare.minimize_options.para_frame.list delete $i
       } }]] \
-    -row 2 -column 4 -columnspan 4 -sticky w
+    -row 2 -column 8 -columnspan 3 -sticky w
 
   pack $mfamo -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
   set mfamc [labelframe $mfa.anmmc_options -text "ANM-MC-Metropolis options:" -bd 2]
   
-  grid [button $mfamc.anmcut_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfamc.anmcut_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "In ANM calculations, the cutoff parameter is the maximum distance that two residues are in contact. The units are A. "}] \
     -row 0 -column 0 -sticky w
-  grid [label $mfamc.anmc_label -text "ANM cutoff (A):   "] \
+  grid [label $mfamc.anmc_label -text "ANM cutoff (A):              " -width 21] \
     -row 0 -column 1 -sticky w
-  grid [entry $mfamc.anmc_field -width 20 -textvariable ::comd::anm_cutoff] \
-    -row 0 -column 2 -sticky w
+  grid [entry $mfamc.anmc_field -width 17 \
+    -textvariable ::comd::anm_cutoff] \
+    -row 0 -column 2 -columnspan 3 -sticky w
 
-  grid [label $mfamc.separatpr2_label -text "      "] \
-    -row 0 -column 3 -sticky w
+  grid [label $mfamc.separatpr1_label -width 6] \
+    -row 0 -column 5 -sticky w
 
-  grid [button $mfamc.dev_mag_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfamc.dev_mag_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The scaling factor used when disturbing the protein structure in ANM-MC steps. Default and suggested value is 0.1 A."}] \
-    -row 0 -column 4 -sticky w
-  grid [label $mfamc.dev_mag_label -text "Deviation (A):            "] \
-    -row 0 -column 5 -sticky w
-  grid [entry $mfamc.dev_mag_field -width 8 \
-      -textvariable ::comd::dev_mag] \
     -row 0 -column 6 -sticky w
+  grid [label $mfamc.dev_mag_label -text "Deviation (A):                   " -width 21] \
+    -row 0 -column 7 -sticky w
+  grid [entry $mfamc.dev_mag_field -width 17 \
+      -textvariable ::comd::dev_mag] \
+    -row 0 -column 8 -columnspan 3 -sticky w
 
-  grid [button $mfamc.accept_para_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfamc.accept_para_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The starting value for the acceptance parameter in ANM-MC steps. Default and suggested value is 0.1."}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfamc.accept_para_label -text "Acceptance parameter: "] \
+  grid [label $mfamc.accept_para_label -text "Acceptance parameter:     " -width 21] \
     -row 1 -column 1 -sticky w
-  grid [entry $mfamc.accept_para_field -width 20 \
+  grid [entry $mfamc.accept_para_field -width 17 \
       -textvariable ::comd::accept_para] \
-    -row 1 -column 2 -sticky w
+    -row 1 -column 2 -columnspan 3 -sticky w
 
-  grid [label $mfamc.separatpr3_label -text "        "] \
-    -row 1 -column 3 -sticky w
+  grid [label $mfamc.separatpr2_label -width 6] \
+    -row 1 -column 5 -sticky w
 
-  grid [button $mfamc.max_steps_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfamc.max_steps_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The maximal number of steps in ANM-MC step. Default and suggested value is 1000000."}] \
-    -row 1 -column 4 -sticky w
-  grid [label $mfamc.max_steps_label -text "Max no of ANM steps:  "] \
-    -row 1 -column 5 -sticky w
-  grid [entry $mfamc.max_steps_field -width 8 \
-      -textvariable ::comd::max_steps] \
     -row 1 -column 6 -sticky w
+  grid [label $mfamc.max_steps_label -text "Max no of ANM steps:      " -width 21] \
+    -row 1 -column 7 -sticky w
+  grid [entry $mfamc.max_steps_field -width 17 \
+      -textvariable ::comd::max_steps] \
+    -row 1 -column 8 -columnspan 3 -sticky w
 
   # grid [button $mfamc.stepcut_help -text "?" -padx 0 -pady 0 -command {
   #     tk_messageBox -type ok -title "HELP" \
-  #       -message "To keep structure intact and to avoid having unrealistic and very different structures in ANM-MC step, an rmsd threshold is used. Suggested value is 4 A."}] \
+  #       -message "To keep structure intact and to avoid having unrealistic \
+  #       and very different structures in ANM-MC step, an rmsd threshold is used. Suggested value is 4 A."}] \
   #   -row 1 -column 0 -sticky w
   # grid [label $mfamc.stepc_label -text "Step cutoff (A): "] \
   #   -row 1 -column 1 -sticky w
@@ -485,7 +488,8 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
 
   # grid [button $mfamc.num_cyc_help -text "?" -padx 0 -pady 0 -command {
   #     tk_messageBox -type ok -title "HELP" \
-  #       -message "The number of disturbances on the structure based on ANM modes. The number of disturbances should be selected based on structure and for a structure with 200 residues suggested number is in order of thousands."}] \
+  #       -message "The number of disturbances on the structure based on ANM modes. \
+  #       The number of disturbances should be selected based on structure and for a structure with 200 residues suggested number is in order of thousands."}] \
   #   -row 1 -column 4 -sticky w
   # grid [label $mfamc.num_cyc_label -text "No of disturbances: "] \
   #   -row 1 -column 5 -sticky w
@@ -497,67 +501,70 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
 
   set mfatm [labelframe $mfa.tmd_options -text "TMD options:" -bd 2]
 
-  grid [button $mfatm.spring_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfatm.spring_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "In targeted molecular dynamics simulation, the target potential is harmonic and the spring constant term shows the force applied to structure to reach final structure."}] \
+        -message "In targeted molecular dynamics simulation, the target potential is harmonic and \
+the spring constant term shows the force applied to a given structure to reach the target structure."}] \
     -row 0 -column 0 -sticky w
-  grid [label $mfatm.spring_label -text "Spring constant:          "] \
+  grid [label $mfatm.spring_label -text "Spring constant:              " -width 21] \
     -row 0 -column 1 -sticky w
-  grid [entry $mfatm.spring_field -width 20 -textvariable ::comd::spring_k] \
-    -row 0 -column 2 -sticky w
+  grid [entry $mfatm.spring_field -width 17 \
+      -textvariable ::comd::spring_k] \
+    -row 0 -column 2 -columnspan 3 -sticky w
 
-  grid [label $mfatm.separatpr2_label -text "        "] \
-    -row 0 -column 3 -sticky w
+  grid [label $mfatm.separatpr2_label -width 6] \
+    -row 0 -column 5 -sticky w
 
-  grid [button $mfatm.tmd_len_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfatm.tmd_len_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The length of targeted molecular dynamics simulations in the units of ps. The length of collective molecular dynamics will change based on the structure and for a structure with 200 residues suggested length is in the order of hundreds."}] \
-    -row 0 -column 4 -sticky w
-  grid [label $mfatm.tmd_len_label -text "TMD length (ps):           "] \
-    -row 0 -column 5 -sticky w
-  grid [entry $mfatm.tmd_len_field -width 8 \
-      -textvariable ::comd::tmd_len] \
     -row 0 -column 6 -sticky w
+  grid [label $mfatm.tmd_len_label -text "TMD length (ps):              " -width 21] \
+    -row 0 -column 7 -sticky w
+  grid [entry $mfatm.tmd_len_field -width 17 \
+      -textvariable ::comd::tmd_len] \
+    -row 0 -column 8 -columnspan 3 -sticky w
   
   pack $mfatm -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
   ########################################3
   set mfaso [labelframe $mfa.simulation_options -text "Simulation options:" -bd 2]
 
-  grid [button $mfaso.cmd_cyc_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaso.cmd_cyc_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "Each CoMD cycle consists of minimization, ANM-MC-Metropolis disturbances and targeted molecular dynamics. Please choose the maximum number of cycles performed. Fewer cycles may be run if the starting and final structures for a given cycle are very close."}] \
     -row 0 -column 0 -sticky w
-  grid [label $mfaso.cmd_cyc_label -text "No of coMD cycles:      "] \
+  grid [label $mfaso.cmd_cyc_label -text "No of coMD cycles:         " -width 21] \
     -row 0 -column 1 -sticky w
-  grid [entry $mfaso.cmd_cyc_field -width 20 -textvariable ::comd::comd_cycle] \
-    -row 0 -column 2 -sticky w
+  grid [entry $mfaso.cmd_cyc_field -width 17 \
+      -textvariable ::comd::comd_cycle] \
+    -row 0 -column 2 -columnspan 3 -sticky w
 
-  grid [label $mfaso.separatpr1_label -text "       "] \
-    -row 0 -column 3 -sticky w
+  grid [label $mfaso.separatpr1_label -width 6] \
+    -row 0 -column 5 -sticky w
 
-  grid [button $mfaso.gpu_id_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaso.gpu_id_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The identifiers for the GPUs that will run your TMD simulation. NAMD can use one GPU per thread and multiple threads can share GPUs."}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfaso.gpu_id_label -text "GPU IDs:      "] \
+  grid [label $mfaso.gpu_id_label -text "GPU IDs:                        " -width 21] \
     -row 1 -column 1 -sticky w
-  grid [entry $mfaso.gpu_id_field -width 20 \
+  grid [entry $mfaso.gpu_id_field -width 17 \
       -textvariable ::comd::gpus_selected] \
-    -row 1 -column 2 -sticky w
+    -row 1 -column 2 -columnspan 3 -sticky w
 
-  grid [label $mfaso.separatpr2_label -text "       "] \
-    -row 1 -column 3 -sticky w
+  grid [label $mfaso.separatpr2_label -width 6] \
+    -row 1 -column 5 -sticky w
 
-  grid [button $mfaso.num_cores_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaso.num_cores_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The number of physical cores in the cluster or PC that will run your TMD simulation. NAMD is running parallel on CPUs."}] \
-    -row 1 -column 4 -sticky w
-  grid [label $mfaso.num_cores_label -text "No of physical cores:      "] \
-    -row 1 -column 5 -sticky w
-  grid [entry $mfaso.num_cores -width 8 \
+    -row 1 -column 6 -sticky w
+  grid [label $mfaso.num_cores_label -text "No of physical cores:         " -width 21] \
+    -row 1 -column 7 -sticky w
+  grid [entry $mfaso.num_cores -width 17 \
       -textvariable ::comd::num_cores] \
-    -row 1 -column 6 -columnspan 4 -sticky ew
+    -row 1 -column 8 -columnspan 3 -sticky ew
 
   
   pack $mfaso -side top -ipadx 0 -ipady 5 -fill x -expand 1
@@ -569,35 +576,34 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
 
   set mfaoo [labelframe $mfa.output_options -text "Output options:" -bd 2]
 
-  grid [button $mfaoo.outdir_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaoo.outdir_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "Output folder, default is current working directory."}] \
     -row 0 -column 0 -sticky w
-  grid [label $mfaoo.outdir_label -text "Output folder:              "] \
+  grid [label $mfaoo.outdir_label -text "Output folder:                  " -width 21] \
     -row 0 -column 1 -sticky w
-  grid [entry $mfaoo.outdir_path -width 40 \
-      -textvariable ::comd::outputdir] \
-    -row 0 -column 2 -columnspan 5 -sticky ew
-  grid [button $mfaoo.dcd_browse -text "Browse" -width 11 -pady 1 -command {
+  grid [entry $mfaoo.outdir_path -width 47 -textvariable ::comd::outputdir] \
+    -row 0 -column 2 -columnspan 6 -sticky ew
+  grid [button $mfaoo.dcd_browse -text "Browse" -width 14 -pady 1 -command {
       set tempfile [tk_chooseDirectory]
       if {![string equal $tempfile ""]} {
         set ::comd::outputdir $tempfile
       }}] \
-    -row 0 -column 7 -sticky w
+    -row 0 -column 8 -columnspan 3 -sticky w
 
-  grid [button $mfaoo.prefix_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfaoo.prefix_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "All output files and folders will start with this prefix.\
 A unique and descriptive prefix choice may allow running multiple simulations in the same folder."}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfaoo.prefix_label -text "Output prefix: "] \
+  grid [label $mfaoo.prefix_label -text "Output prefix:                  " -width 21] \
     -row 1 -column 1 -sticky w
-  grid [entry $mfaoo.prefix_path -width 20 \
+  grid [entry $mfaoo.prefix_path -width 17 \
       -textvariable ::comd::output_prefix] \
-    -row 1 -column 2 -sticky w
+    -row 1 -column 2 -columnspan 3 -sticky w
 
-  grid [label $mfaoo.separator_label -text "   "] \
-    -row 1 -column 3 -columnspan 5 -sticky w
+  grid [label $mfaoo.separator_label -width 6] \
+    -row 1 -column 5 -sticky w
   
   pack $mfaoo -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
@@ -881,7 +887,7 @@ proc ::comd::Prepare_system {} {
   	puts $tcl_file "set python_path ${python_path}\/python" 
   }
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $[$gpus_selected]\\\"\""
+  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices [$gpus_selected]\\\"\""
   puts $tcl_file "file mkdir \"${output_prefix}_inimin\""
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_inimin\" \"min.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/initial_ionized.pdb\""
@@ -1080,7 +1086,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $[$gpus_selected]\\\"\""
+  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices [$gpus_selected]\\\"\""
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_inipro\" \"pro.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/initial_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ..\/initial_ionized.psf\""
@@ -1201,7 +1207,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $[$gpus_selected]\\\"\""
+  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices [$gpus_selected]\\\"\""
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_inimin\" \"min.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ../initial_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ../initial_ionized.psf\""

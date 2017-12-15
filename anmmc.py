@@ -154,6 +154,14 @@ for k in range(N):
         else:
             count1 += 1
 
+        if (mod(k,25)==0 and not(k==0)):
+            # Update of the accept_para to keep the MC para reasonable
+            # See comment lines 82 to 85. 
+            if count2/count1 > 0.95:
+                accept_para*=1.5;
+            elif count2/count1 < 0.85:
+                accept_para/=1.5
+
     else:
         # for exploration based on one structure (two runs)
         # all moves are uphill but will be accepted anyway
@@ -163,21 +171,13 @@ for k in range(N):
         Ep = En
         step_count += 1
 
-    if (mod(k,25)==0 and not(k==0)):
+    if (mod(k,1000)==0 and not(k==0)):
         check_step_counts.append(step_count)
         writeDCD(initial_pdb_id + '_' + final_pdb_id + '_steps_' + str(check_step_counts[-2]) + '-' \
                  + str(check_step_counts[-1]-1) + '.dcd',ensemble[check_step_counts[-2]:check_step_counts[-1]-1])
 
-        # Update of the accept_para to keep the MC para reasonable
-        # See comment lines 82 to 85. 
-        if count2/count1 > 0.95:
-            accept_para*=1.5;
-        elif count2/count1 < 0.85:
-            accept_para/=1.5
-
-
     coord_diff = pdb_ca.getCoords() - initial_pdb_ca.getCoords()
-    fo.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\t' + str(rand) + '\t' + str(ID) + '\n')
+    fo.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\t' + str(rand) + '\t' + str(ID) + '\t' + str(k) + '\t' + str(step_count) '\n')
 
     if linalg.norm(coord_diff.ravel()) > stepcutoff: 
         break
@@ -189,5 +189,5 @@ ensemble_final.addCoordset(pdb_ca.getCoords())
 writeDCD(initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd', ensemble_final)
 writeDCD(initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd', ensemble)
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
-savetxt(initial_pdb + '_ratio.dat', ratios)
+savetxt(initial_pdb_id + '_ratio.dat', ratios)
 

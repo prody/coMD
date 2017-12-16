@@ -14,30 +14,32 @@ final_pdbn=ar[2]
 original_initial_pdb = ar[3]
 original_final_pdb = ar[4]
 
-if len(ar) > 5 and ar[5].strip() is not 0:
-    anm_cut=float(ar[5])
+comd_cycle_number = ar[5]
+
+if len(ar) > 6 and ar[6].strip() is not 0:
+    anm_cut=float(ar[6])
 else:
     anm_cut=15
 
-if len(ar) > 6 and ar[6].strip() is not 0:
-    devi=float(ar[6])
+if len(ar) > 7 and ar[7].strip() is not 0:
+    devi=float(ar[7])
 else:
     devi=0.1
 
-if len(ar) > 7 and ar[7].strip() is not 0:
-    accept_para=int(ar[7])
+if len(ar) > 8 and ar[8].strip() is not 0:
+    accept_para=int(ar[8])
 else:
     accept_para=0.1
 
-if len(ar) > 8 and ar[8].strip() is not 0:
-    N=int(ar[8])
+if len(ar) > 9 and ar[9].strip() is not 0:
+    N=int(ar[9])
 else:
     N=1000000
 
 initial_pdb_id = initial_pdbn.split('.')[0]
 final_pdb_id = final_pdbn.split('.')[0]
 
-fo = open('anmmc_log.txt','w')
+fo = open(initial_pdb_id + '_anmmc_log_{0}.txt'.format(comd_cycle_number),'w')
 
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
@@ -49,7 +51,7 @@ stepcutoff = 0.5 * (len(initial_pdb_ca) ** 0.5)
 # ANM calculation based on current
 if os.path.isfile(initial_pdb_id + '.anm.npz'):
     pdb_anm = loadModel(initial_pdb_id + '.anm.npz')
-    fo.write("ANM model loaded\n")
+    sys.stdout.write("ANM model loaded\n")
 else:
     # ANM calculation based on current
     pdb_anm = ANM('pdb ca')
@@ -117,6 +119,8 @@ ensemble_final.setCoords(initial_pdb_ca)
 
 step_count = 0
 check_step_counts = [0]
+
+fo.write('En' + ' '*16 + 'coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
 #exit
 # MC Loop 
 for k in range(N):
@@ -173,11 +177,13 @@ for k in range(N):
 
     if (mod(k,1000)==0 and not(k==0)):
         check_step_counts.append(step_count)
-        writeDCD(initial_pdb_id + '_' + final_pdb_id + '_steps_' + str(check_step_counts[-2]) + '-' \
+        writeDCD('cycle_{0}_'.format(comd_cycle_number) + initial_pdb_id + \
+                 '_' + final_pdb_id + '_steps_' + str(check_step_counts[-2]) + '-' \
                  + str(check_step_counts[-1]-1) + '.dcd',ensemble[check_step_counts[-2]:check_step_counts[-1]-1])
 
     coord_diff = pdb_ca.getCoords() - initial_pdb_ca.getCoords()
-    fo.write(str(En) + '\t' + str(linalg.norm(coord_diff.ravel())) + '\t' + str(rand) + '\t' + str(ID) + '\t' + str(k) + '\t' + str(step_count) + '\n')
+    fo.write('{:15.8f}'.format(En) + ' ' + '{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
+             '{:8.7f}'.format(rand) + ' ' + '{:8d}'.format(ID) + ' ' + '{:8d}'.format(k) + ' ' + '{:11d}'.format(step_count) + '\n')
 
     if linalg.norm(coord_diff.ravel()) > stepcutoff: 
         break
@@ -186,8 +192,8 @@ for k in range(N):
     
 ensemble_final.addCoordset(pdb_ca.getCoords())
     
-writeDCD(initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd', ensemble_final)
-writeDCD(initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd', ensemble)
+writeDCD('cycle_{0}_'.format(comd_cycle_number) + initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd', ensemble_final)
+writeDCD('cycle_{0}_'.format(comd_cycle_number) + initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd', ensemble)
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
 savetxt(initial_pdb_id + '_ratio.dat', ratios)
 

@@ -880,6 +880,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "package require exectool"
+  puts $tcl_file "package require Thread"
   puts $tcl_file "set namd2path \[::ExecTool::find \"namd2\"\]"
   if {$::comd::python_path == ""} {
   	puts $tcl_file "set python_path \[::ExecTool::find \"python\"\]"	
@@ -1053,8 +1054,16 @@ proc ::comd::Prepare_system {} {
   if {$dev_mag eq ""} {set dev_mag 0}
   if {$accept_para eq ""} {set accept_para 0}
   if {$max_steps eq ""} {set max_steps 0}
-  puts $tcl_file "set result \[exec -ignorestderr \$python_path anmmc.py starting_initial.pdb initial_target.pdb ${initial_pdb} ${final_pdb} ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps}\]"
-  puts $tcl_file "set result \[exec -ignorestderr \$python_path anmmc.py starting_final.pdb final_target.pdb ${initial_pdb} ${final_pdb} ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps}\]"
+
+  puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
+  puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
+  puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_initial.pdb initial_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \&\""
+  puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_final.pdb final_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \&\""
+  puts $tcl_file "puts \$sh_file \"wait\""
+  puts $tcl_file "close \$sh_file"
+  puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
+  #set result \[exec -ignorestderr \$python_path anmmc.py starting_initial.pdb initial_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps}\]\}"
+  #set result \[exec -ignorestderr \$python_path anmmc.py starting_final.pdb final_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps}\]\}"
   
   puts $tcl_file "mol delete all"
   puts $tcl_file "mol load psf initial_ionized.psf"
@@ -1062,7 +1071,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set s2 \[atomselect top \"all\"\]"
   puts $tcl_file "mol load pdb final_target.pdb"
-  puts $tcl_file "mol addfile starting_initial.pdb_initial_target.pdb_final_structure.dcd"
+  puts $tcl_file "mol addfile cycle_${cycle}_starting_initial_initial_target_final_structure.dcd"
   puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
   puts $tcl_file "\$s3 move \$trans_mat"
@@ -1078,7 +1087,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set s2 \[atomselect top \"all\"\]"
   puts $tcl_file "mol load pdb initial_target.pdb"
-  puts $tcl_file "mol addfile starting_final.pdb_final_target.pdb_final_structure.dcd"
+  puts $tcl_file "mol addfile cycle_${cycle}_starting_final_final_target_final_structure.dcd"
   puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
   puts $tcl_file "\$s3 move \$trans_mat"

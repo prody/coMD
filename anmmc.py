@@ -6,33 +6,33 @@ import sys
 
 ar =[]
 for arg in sys.argv:
-        ar.append(arg)
+    ar.append(arg)
 
 initial_pdbn=ar[1]
 final_pdbn=ar[2]
 
-if len(ar) > 3:
-    anm_cut=float(ar[3])
+original_initial_pdb = ar[3]
+original_final_pdb = ar[4]
+
+if len(ar) > 5 and ar[5].strip() is not 0:
+    anm_cut=float(ar[5])
 else:
     anm_cut=15
 
-if len(ar) > 4:
-    devi=float(ar[4])
+if len(ar) > 6 and ar[6].strip() is not 0:
+    devi=float(ar[6])
 else:
     devi=0.1
 
-if len(ar) > 5:
-    accept_para=int(ar[5])
+if len(ar) > 7 and ar[7].strip() is not 0:
+    accept_para=int(ar[7])
 else:
     accept_para=0.1
 
-if len(ar) > 6:
-    N=int(ar[6])
+if len(ar) > 8 and ar[8].strip() is not 0:
+    N=int(ar[8])
 else:
     N=1000000
-
-original_initial_pdb = ar[-2]
-original_final_pdb = ar[-1]
 
 initial_pdb_id = initial_pdbn.split('.')[0]
 final_pdb_id = final_pdbn.split('.')[0]

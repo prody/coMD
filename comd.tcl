@@ -1049,8 +1049,12 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "\$s1 writepdb final_target.pdb"
   
   #set anmmc_path [file join "$COMD_PATH" "anmmc.py"]
-  puts $tcl_file "set result \[exec -ignorestderr \$python_path anmmc.py starting_initial.pdb initial_target.pdb ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} ${initial_pdb} ${final_pdb}\]"
-  puts $tcl_file "set result \[exec -ignorestderr \$python_path anmmc.py starting_final.pdb final_target.pdb ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} ${initial_pdb} ${final_pdb}\]"
+  if {$anm_cutoff eq ""} {set anm_cutoff 0}
+  if {$dev_mag eq ""} {set dev_mag 0}
+  if {$accept_para eq ""} {set accept_para 0}
+  if {$max_steps eq ""} {set max_steps 0}
+  puts $tcl_file "set result \[exec -ignorestderr \$python_path anmmc.py starting_initial.pdb initial_target.pdb ${initial_pdb} ${final_pdb} ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps}\]"
+  puts $tcl_file "set result \[exec -ignorestderr \$python_path anmmc.py starting_final.pdb final_target.pdb ${initial_pdb} ${final_pdb} ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps}\]"
   
   puts $tcl_file "mol delete all"
   puts $tcl_file "mol load psf initial_ionized.psf"

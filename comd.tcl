@@ -1049,12 +1049,10 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   puts $tcl_file "\$s1 writepdb final_target.pdb"
   
-  #set anmmc_path [file join "$COMD_PATH" "anmmc.py"]
   if {$anm_cutoff eq ""} {set anm_cutoff 0}
   if {$dev_mag eq ""} {set dev_mag 0}
   if {$accept_para eq ""} {set accept_para 0}
   if {$max_steps eq ""} {set max_steps 0}
-
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_initial.pdb initial_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \&\""

@@ -39,7 +39,7 @@ else:
 initial_pdb_id = initial_pdbn.split('.')[0]
 final_pdb_id = final_pdbn.split('.')[0]
 
-fo = open(initial_pdb_id + '_anmmc_log_{0}.txt'.format(comd_cycle_number),'w')
+log_file = open('cycle_{0}_'.format(comd_cycle_number) + initial_pdb_id + '_anmmc_log.txt','w')
 
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
@@ -88,8 +88,8 @@ if os.path.isfile(initial_pdb_id + '_ratio.dat') and os.stat(initial_pdb_id + '_
         accept_para /= 1.5
     else:
         savetxt(initial_pdb_id + '_status.dat',[1])
-else:
-    accept_para = 0.1
+#else:
+#    accept_para = 0.1
 # The best value for MC parameter 1 is around 0.9 
 # so values less than 0.85 and greater than 0.95 are not preferred 
 # and accept_para is adjusted to help bring it within these limits.
@@ -113,7 +113,7 @@ ensemble_final.setCoords(initial_pdb_ca)
 step_count = 0
 check_step_counts = [0]
 
-fo.write('En' + ' '*16 + 'coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
+log_file.write('En' + ' '*16 + 'coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
 #exit
 # MC Loop 
 for k in range(N):
@@ -175,7 +175,7 @@ for k in range(N):
                  + str(check_step_counts[-1]-1) + '.dcd',ensemble[check_step_counts[-2]:check_step_counts[-1]-1])
 
     coord_diff = pdb_ca.getCoords() - initial_pdb_ca.getCoords()
-    fo.write('{:15.8f}'.format(En) + ' ' + '{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
+    log_file.write('{:15.8f}'.format(En) + ' ' + '{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
              '{:8.7f}'.format(rand) + ' ' + '{:8d}'.format(ID) + ' ' + '{:8d}'.format(k) + ' ' + '{:11d}'.format(step_count) + '\n')
 
     if linalg.norm(coord_diff.ravel()) > stepcutoff: 
@@ -189,4 +189,4 @@ writeDCD('cycle_{0}_'.format(comd_cycle_number) + initial_pdb_id + '_' + final_p
 writeDCD('cycle_{0}_'.format(comd_cycle_number) + initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd', ensemble)
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
 savetxt(initial_pdb_id + '_ratio.dat', ratios)
-
+log_file.close()

@@ -1339,7 +1339,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set rmsd \[measure rmsd \$sel2 \$sel1\]"
   puts $tcl_file "set all_rmsd(\[expr \$\{cycle\}+1\]) \$rmsd"
   puts $tcl_file "puts \$rmsd"
-  puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\$\{cycle\}\) - \$all_rmsd\(\[expr \$\{cycle\}+1\]\)\]\ < 0.15 \)\} \{ break \}"
+
+  if {$initial_pdb ne $final_pdb}{
+    puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\$\{cycle\}\) - \$all_rmsd\(\[expr \$\{cycle\}+1\]\)\]\ < 0.15 \)\} \{ break \}"
+  }
+
   puts $tcl_file "}"
   #end of loop started on line 1005
   puts $tcl_file "set status \[catch \{exec mv initr.dcd initial_trajectory.dcd\} output\]" 

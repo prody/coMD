@@ -878,7 +878,6 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "package require exectool"
-  puts $tcl_file "package require Thread"
   puts $tcl_file "set namd2path \[::ExecTool::find \"namd2\"\]"
   if {$::comd::python_path == ""} {
   	puts $tcl_file "set python_path \[::ExecTool::find \"python\"\]"	

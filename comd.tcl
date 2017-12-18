@@ -861,20 +861,17 @@ proc ::comd::Prepare_system {} {
   set fzlen [expr {$fzmax-$fzmin+16.0}]
   
   ####### INITIAL MINIMIZATION OF STARTING PROTEIN STRUCTURES #######
-
-  # Initial structure minimization
-  #set status [exec bash "${sh_filename}"]
+ 
   puts $log_file "Simulation: NAMD configuration files for minimization written in ${output_prefix}_inimin and ${output_prefix}_finmin."
   close $log_file
 
   if {$para_file == ""} {
     set para_file "${COMD_PATH}/par_all27_prot_lipid.prm"
   }
-  set tcl_file [open [file join "$outputdir" "$output_prefix.tcl"] w]
-  #set tcl_file_name [file join "$outputdir" "$output_prefix.tcl"]
+  set tcl_file [open [file join "$outputdir" "$output_prefix.tcl"] w] 
   puts $tcl_file "#This tcl file will run full collective molecular dynamics simulation with given parameters."
 
-  #### #
+  # Initial structure minimization
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "package require exectool"
@@ -1066,7 +1063,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set s2 \[atomselect top \"all\"\]"
   puts $tcl_file "mol load pdb final_target.pdb"
-  puts $tcl_file "mol addfile cycle_${cycle}_starting_initial_initial_target_final_structure.dcd"
+  puts $tcl_file "mol addfile cycle_\[expr \$\{cycle\}+1\]_starting_initial_initial_target_final_structure.dcd"
   puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
   puts $tcl_file "\$s3 move \$trans_mat"
@@ -1082,7 +1079,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set s2 \[atomselect top \"all\"\]"
   puts $tcl_file "mol load pdb initial_target.pdb"
-  puts $tcl_file "mol addfile cycle_${cycle}_starting_final_final_target_final_structure.dcd"
+  puts $tcl_file "mol addfile cycle_\[expr \$\{cycle\}+1\]_starting_final_final_target_final_structure.dcd"
   puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
   puts $tcl_file "\$s3 move \$trans_mat"
@@ -1320,7 +1317,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd \${output_prefix}_inimin\/initial_minimized\[expr \$\{cycle\}+1\].dcd -o initial_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv initial_trajectory.dcd initr.dcd\} output\]" 
   puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd \${output_prefix}_finmin\/final_minimized\[expr \$\{cycle\}+1\].dcd -o final_trajectory.dcd\} output\]"
-  puts $tcl_file "set status \[catch \{exec mv final_trajectory.dcd fintr.dcd\} output\]" 
+  puts $tcl_file "set status \[catch \{exec mv final_trajectory.dcd fintr.dcd\} output\]"
   
   puts $tcl_file "mol delete all" 
   puts $tcl_file "mol load psf initial_ionized.psf"
@@ -1337,12 +1334,12 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set all_rmsd(\[expr \$\{cycle\}+1\]) \$rmsd"
   puts $tcl_file "puts \$rmsd"
 
-  if {$initial_pdb ne $final_pdb}{
-    puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\$\{cycle\}\) - \$all_rmsd\(\[expr \$\{cycle\}+1\]\)\]\ < 0.15 \)\} \{ break \}"
+  if {$initial_pdb ne $final_pdb} {
+    puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\$\{cycle\}\) - \$all_rmsd\(\[expr \$\{cycle\+1\]\)\]\ < 0.15 \)\} \{ break \}"
   }
 
   puts $tcl_file "}"
-  #end of loop started on line 1005
+  #end of loop started on line 1007
   puts $tcl_file "set status \[catch \{exec mv initr.dcd initial_trajectory.dcd\} output\]" 
   puts $tcl_file "set status \[catch \{exec mv fintr.dcd final_trajectory.dcd\} output\]" 
   close $tcl_file

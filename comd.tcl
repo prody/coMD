@@ -971,10 +971,10 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "close \$namd_file"
   
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_inimin\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min.log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min0.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\"" 
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_finmin\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min.log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min0.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\"" 
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"

@@ -113,7 +113,7 @@ ensemble_final.setCoords(initial_pdb_ca)
 step_count = 0
 check_step_counts = [0]
 
-log_file.write('En' + ' '*16 + 'coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
+log_file.write('coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
 #exit
 # MC Loop 
 for k in range(N):
@@ -127,11 +127,11 @@ for k in range(N):
     coords_temp[0:,1] = coords_temp[0:,1] + direction * U[range(1,len(U),3),ID] * eigs_nn[ID] * scale_factor
     coords_temp[0:,2] = coords_temp[0:,2] + direction * U[range(2,len(U),3),ID] * eigs_nn[ID] * scale_factor
     pdb_ca_temp.setCoords(coords_temp)
-   
-    dist = buildDistMatrix(pdb_ca_temp)
-    En = sum((native_dist - dist)**2)
 
-    if original_initial_pdb != original_final_pdb:
+    if original_initial_pdb != original_final_pdb:   
+        dist = buildDistMatrix(pdb_ca_temp)
+        En = sum((native_dist - dist)**2)
+
         # check whether you are heading the right way
         # and accept uphill moves depending on the
         # Metropolis criterion
@@ -165,18 +165,11 @@ for k in range(N):
         pdb_ca = pdb_ca_temp.copy()
         count1 += 1
         count2 += 1
-        Ep = En
         step_count += 1
 
-    if (mod(k,1000)==0 and not(k==0)):
-        check_step_counts.append(step_count)
-        writeDCD('cycle_{0}_'.format(comd_cycle_number) + initial_pdb_id + \
-                 '_' + final_pdb_id + '_steps_' + str(check_step_counts[-2]) + '-' \
-                 + str(check_step_counts[-1]-1) + '.dcd',ensemble[check_step_counts[-2]:check_step_counts[-1]-1])
-
     coord_diff = pdb_ca.getCoords() - initial_pdb_ca.getCoords()
-    log_file.write('{:15.8f}'.format(En) + ' ' + '{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
-             '{:8.7f}'.format(rand) + ' ' + '{:8d}'.format(ID) + ' ' + '{:8d}'.format(k) + ' ' + '{:11d}'.format(step_count) + '\n')
+    log_file.write('{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
+             '{:8.7f}'.format(rand) + ' ' + '{:8d}'.format(ID) + ' ' + '{:8d}'.format(k+1) + ' ' + '{:11d}'.format(step_count) + '\n')
 
     if linalg.norm(coord_diff.ravel()) > stepcutoff: 
         break

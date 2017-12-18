@@ -85,7 +85,6 @@ namespace eval ::comd:: {
   variable tmd_len 
   # Simulation options
   variable comd_cycle 
-  variable num_runs
   variable num_cores
   variable gpus_selected
   variable python_path ""
@@ -689,7 +688,6 @@ proc ::comd::Prepare_system {} {
   variable max_steps 
   variable spring_k
   variable tmd_len
-  variable num_runs
   variable num_cores
   variable gpus_selected
   variable outputdir

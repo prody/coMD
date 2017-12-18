@@ -544,7 +544,7 @@ the spring constant term shows the force applied to a given structure to reach t
 
   grid [button $mfaso.gpu_id_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "The identifiers for the GPUs that will run your TMD simulation. NAMD can use one GPU per thread and multiple threads can share GPUs."}] \
+        -message "The identifiers for the GPUs that will run your TMD simulation separated by commas. NAMD can use one GPU per thread and multiple threads can share GPUs."}] \
     -row 1 -column 0 -sticky w
   grid [label $mfaso.gpu_id_label -text "GPU IDs:                        " -width 21] \
     -row 1 -column 1 -sticky w

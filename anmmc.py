@@ -39,7 +39,7 @@ else:
 initial_pdb_id = initial_pdbn.split('.')[0]
 final_pdb_id = final_pdbn.split('.')[0]
 
-log_file = open('cycle_{0}_'.format(comd_cycle_number+1) + initial_pdb_id + '_anmmc_log.txt','w')
+log_file = open('cycle_{0}_'.format(int(comd_cycle_number)+1) + initial_pdb_id + '_anmmc_log.txt','w')
 
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
@@ -178,8 +178,8 @@ for k in range(N):
     
 ensemble_final.addCoordset(pdb_ca.getCoords())
     
-writeDCD('cycle_{0}_'.format(comd_cycle_number+1) + initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd', ensemble_final)
-writeDCD('cycle_{0}_'.format(comd_cycle_number+1) + initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd', ensemble)
+writeDCD('cycle_{0}_'.format(int(comd_cycle_number)+1) + initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd', ensemble_final)
+writeDCD('cycle_{0}_'.format(int(comd_cycle_number)+1) + initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd', ensemble)
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
 savetxt(initial_pdb_id + '_ratio.dat', ratios)
 log_file.close()

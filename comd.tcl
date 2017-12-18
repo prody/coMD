@@ -861,20 +861,17 @@ proc ::comd::Prepare_system {} {
   set fzlen [expr {$fzmax-$fzmin+16.0}]
   
   ####### INITIAL MINIMIZATION OF STARTING PROTEIN STRUCTURES #######
-
-  # Initial structure minimization
-  #set status [exec bash "${sh_filename}"]
+ 
   puts $log_file "Simulation: NAMD configuration files for minimization written in ${output_prefix}_inimin and ${output_prefix}_finmin."
   close $log_file
 
   if {$para_file == ""} {
     set para_file "${COMD_PATH}/par_all27_prot_lipid.prm"
   }
-  set tcl_file [open [file join "$outputdir" "$output_prefix.tcl"] w]
-  #set tcl_file_name [file join "$outputdir" "$output_prefix.tcl"]
+  set tcl_file [open [file join "$outputdir" "$output_prefix.tcl"] w] 
   puts $tcl_file "#This tcl file will run full collective molecular dynamics simulation with given parameters."
 
-  #### #
+  # Initial structure minimization
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "package require exectool"
@@ -891,7 +888,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/initial_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ..\/initial_ionized.psf\""
   puts $tcl_file "puts \$namd_file \"set temperature $temperature\""
-  puts $tcl_file "puts \$namd_file \"set outputname initial_minimized0\""
+  puts $tcl_file "puts \$namd_file \"set outputname initial_minimized\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
 
@@ -935,7 +932,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/final_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ..\/final_ionized.psf\""
   puts $tcl_file "puts \$namd_file \"set temperature $temperature\""
-  puts $tcl_file "puts \$namd_file \"set outputname final_minimized0\""
+  puts $tcl_file "puts \$namd_file \"set outputname final_minimized\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
 
@@ -982,19 +979,19 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
-  puts $tcl_file "set status \[catch \{exec mv \${output_prefix}_inimin\/initial_minimized0.dcd initial_trajectory.dcd\} output\]"
+  puts $tcl_file "set status \[catch \{exec mv \${output_prefix}_inimin\/initial_minimized.dcd initial_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv initial_trajectory.dcd initr.dcd\} output\]" 
-  puts $tcl_file "set status \[catch \{exec mv \${output_prefix}_finmin\/final_minimized0.dcd final_trajectory.dcd\} output\]"
+  puts $tcl_file "set status \[catch \{exec mv \${output_prefix}_finmin\/final_minimized.dcd final_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv final_trajectory.dcd fintr.dcd\} output\]" 
   
   puts $tcl_file "package require psfgen"
   puts $tcl_file "mol delete all" 
   puts $tcl_file "mol load psf initial_ionized.psf"
-  puts $tcl_file "mol addfile ${output_prefix}_inimin/initial_minimized0.coor" 
+  puts $tcl_file "mol addfile ${output_prefix}_inimin/initial_minimized.coor" 
   puts $tcl_file "set sel1 \[atomselect top \"name CA\"\]" 
   puts $tcl_file "set sel1a \[atomselect top all\]"
   puts $tcl_file "mol load psf final_ionized.psf"
-  puts $tcl_file "mol addfile ${output_prefix}_finmin/final_minimized0.coor"  
+  puts $tcl_file "mol addfile ${output_prefix}_finmin/final_minimized.coor"  
   puts $tcl_file "set sel2 \[atomselect top \"name CA\"\]" 
   puts $tcl_file "set sel2a \[atomselect top all\]"
   puts $tcl_file "set trans_mat \[measure fit \$sel2 \$sel1\]"
@@ -1220,7 +1217,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"coordinates     ../initial_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ../initial_ionized.psf\""
   puts $tcl_file "puts \$namd_file \"set temperature $temperature\""
-  puts $tcl_file "puts \$namd_file \"set outputname initial_minimized\[expr \$\{cycle\}+1\]\""
+  puts $tcl_file "puts \$namd_file \"set outputname initial_minimized\${cycle}\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
   
@@ -1269,7 +1266,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"coordinates     ../final_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ../final_ionized.psf\""
   puts $tcl_file "puts \$namd_file \"set temperature $temperature\""
-  puts $tcl_file "puts \$namd_file \"set outputname final_minimized\[expr \$\{cycle\}+1\]\""
+  puts $tcl_file "puts \$namd_file \"set outputname final_minimized\${cycle}\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
   
@@ -1317,18 +1314,18 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
 
-  puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd \${output_prefix}_inimin\/initial_minimized\[expr \$\{cycle\}+1\].dcd -o initial_trajectory.dcd\} output\]"
+  puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd \${output_prefix}_inimin\/initial_minimized\${cycle}.dcd -o initial_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv initial_trajectory.dcd initr.dcd\} output\]" 
-  puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd \${output_prefix}_finmin\/final_minimized\[expr \$\{cycle\}+1\].dcd -o final_trajectory.dcd\} output\]"
-  puts $tcl_file "set status \[catch \{exec mv final_trajectory.dcd fintr.dcd\} output\]" 
+  puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd \${output_prefix}_finmin\/final_minimized\${cycle}.dcd -o final_trajectory.dcd\} output\]"
+  puts $tcl_file "set status \[catch \{exec mv final_trajectory.dcd fintr.dcd\} output\]"
   
   puts $tcl_file "mol delete all" 
   puts $tcl_file "mol load psf initial_ionized.psf"
-  puts $tcl_file "mol addfile ${output_prefix}_inimin/initial_minimized\[expr \$\{cycle\}+1\].coor" 
+  puts $tcl_file "mol addfile ${output_prefix}_inimin/initial_minimized\${cycle}.coor" 
   puts $tcl_file "set sel1 \[atomselect top \"name CA\"\]" 
   puts $tcl_file "set sel1a \[atomselect top all\]"
   puts $tcl_file "mol load psf final_ionized.psf"
-  puts $tcl_file "mol addfile ${output_prefix}_finmin/final_minimized\[expr \$\{cycle\}+1\].coor"  
+  puts $tcl_file "mol addfile ${output_prefix}_finmin/final_minimized\${cycle}.coor"  
   puts $tcl_file "set sel2 \[atomselect top \"name CA\"\]" 
   puts $tcl_file "set sel2a \[atomselect top all\]"
   puts $tcl_file "set trans_mat \[measure fit \$sel2 \$sel1\]"
@@ -1337,12 +1334,12 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set all_rmsd(\[expr \$\{cycle\}+1\]) \$rmsd"
   puts $tcl_file "puts \$rmsd"
 
-  if {$initial_pdb ne $final_pdb}{
+  if {$initial_pdb ne $final_pdb} {
     puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\$\{cycle\}\) - \$all_rmsd\(\[expr \$\{cycle\}+1\]\)\]\ < 0.15 \)\} \{ break \}"
   }
 
   puts $tcl_file "}"
-  #end of loop started on line 1005
+  #end of loop started on line 1007
   puts $tcl_file "set status \[catch \{exec mv initr.dcd initial_trajectory.dcd\} output\]" 
   puts $tcl_file "set status \[catch \{exec mv fintr.dcd final_trajectory.dcd\} output\]" 
   close $tcl_file

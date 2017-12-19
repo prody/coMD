@@ -86,6 +86,7 @@ namespace eval ::comd:: {
   # Simulation options
   variable comd_cycle 
   variable num_cores
+  variable retry
   variable gpus_selected
   variable python_path ""
   # output options
@@ -542,6 +543,18 @@ the spring constant term shows the force applied to a given structure to reach t
   grid [label $mfaso.separatpr1_label -width 6] \
     -row 0 -column 5 -sticky w
 
+  grid [button $mfaso.retry_help -text "?" -width 1 -padx 0 -pady 0 -command {
+    tk_messageBox -type ok -title "HELP" \
+      -message "Checking this option enables retries if a file isn't found as often happens if the system explodes. This option may be helpful as this is the main cause of crashes."}] \
+    -row 0 -column 6 -sticky w
+  grid [label $mfaso.retry_label -text "Retry if no file:                  " -width 21] \
+    -row 0 -column 7 -sticky w
+  grid [label $mfaso.separatpr2_label -width 13] \
+    -row 1 -column 8 -columnspan 2 -sticky w
+  grid [checkbutton $mfaso.retry_check -width 1 \
+      -variable ::comd::retry] \
+    -row 0 -column 10 -sticky e
+
   grid [button $mfaso.gpu_id_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
         -message "The identifiers for the GPUs that will run your TMD simulation separated by commas. NAMD can use one GPU per thread and multiple threads can share GPUs."}] \
@@ -552,7 +565,7 @@ the spring constant term shows the force applied to a given structure to reach t
       -textvariable ::comd::gpus_selected] \
     -row 1 -column 2 -columnspan 3 -sticky w
 
-  grid [label $mfaso.separatpr2_label -width 6] \
+  grid [label $mfaso.separatpr3_label -width 6] \
     -row 1 -column 5 -sticky w
 
   grid [button $mfaso.num_cores_help -text "?" -width 1 -padx 0 -pady 0 -command {
@@ -689,6 +702,7 @@ proc ::comd::Prepare_system {} {
   variable spring_k
   variable tmd_len
   variable num_cores
+  variable retry
   variable gpus_selected
   variable outputdir
   variable python_path
@@ -1008,6 +1022,15 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "mol delete all"
   puts $tcl_file "resetpsf"
   puts $tcl_file "mol load psf initial_ionized.psf"
+
+  if {$retry} {
+  puts $tcl_file "if {\[catch {open ${output_prefix}_inimin/initial_minimized\$cycle.coor r} fid\]} {"
+  puts $tcl_file "set cycle \[expr \$\{cycle\}-1\]"
+  puts $tcl_file "} elseif {\[catch {open ${output_prefix}_finmin/final_minimized\$cycle.coor r} fid\]} {"
+  puts $tcl_file "set cycle \[expr \$\{cycle\}-1\]"
+  puts $tcl_file "}"
+  }
+
   puts $tcl_file "mol addfile ${output_prefix}_inimin/initial_minimized\$cycle.coor"
   puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set s2 \[atomselect top \"all\"\]"

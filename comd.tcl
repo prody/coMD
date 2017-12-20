@@ -993,10 +993,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
-  puts $tcl_file "set status \[catch \{exec mv \${output_prefix}_inimin\/initial_minimized0.dcd initial_trajectory.dcd\} output\]"
-  puts $tcl_file "set status \[catch \{exec mv initial_trajectory.dcd initr.dcd\} output\]" 
-  puts $tcl_file "set status \[catch \{exec mv \${output_prefix}_finmin\/final_minimized0.dcd final_trajectory.dcd\} output\]"
-  puts $tcl_file "set status \[catch \{exec mv final_trajectory.dcd fintr.dcd\} output\]" 
+  puts $tcl_file "set status \[catch \{exec cp ${output_prefix}_inimin\/initial_minimized0.dcd initr.dcd\} output\]" 
+  puts $tcl_file "set status \[catch \{exec cp ${output_prefix}_finmin\/final_minimized0.dcd fintr.dcd\} output\]" 
   
   puts $tcl_file "package require psfgen"
   puts $tcl_file "mol delete all" 
@@ -1072,8 +1070,8 @@ proc ::comd::Prepare_system {} {
   if {$max_steps eq ""} {set max_steps 0}
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
-  puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_initial.pdb initial_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \&\""
-  puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_final.pdb final_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \&\""
+  puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_initial.pdb initial_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \>& cycle_\${cycle}_ini_anmmc_log.txt \&\""
+  puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_final.pdb final_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
@@ -1086,7 +1084,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set s2 \[atomselect top \"all\"\]"
   puts $tcl_file "mol load pdb final_target.pdb"
-  puts $tcl_file "mol addfile cycle_\[expr \$\{cycle\}+1\]_starting_initial_initial_target_final_structure.dcd"
+  puts $tcl_file "mol addfile cycle_\$\{cycle\}_starting_initial_initial_target_final_structure.dcd"
   puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
   puts $tcl_file "\$s3 move \$trans_mat"
@@ -1102,7 +1100,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set s2 \[atomselect top \"all\"\]"
   puts $tcl_file "mol load pdb initial_target.pdb"
-  puts $tcl_file "mol addfile cycle_\[expr \$\{cycle\}+1\]_starting_final_final_target_final_structure.dcd"
+  puts $tcl_file "mol addfile cycle_\$\{cycle\}_starting_final_final_target_final_structure.dcd"
   puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
   puts $tcl_file "\$s3 move \$trans_mat"
@@ -1226,9 +1224,9 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
 
-  puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd \${output_prefix}_inipro\/initial_process\$\{cycle\}.dcd -o initial_trajectory.dcd\} output\]"
+  puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd ${output_prefix}_inipro\/initial_process\$\{cycle\}.dcd -o initial_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv initial_trajectory.dcd initr.dcd\} output\]" 
-  puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd \${output_prefix}_finpro\/final_process\$\{cycle\}.dcd -o final_trajectory.dcd\} output\]"
+  puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd ${output_prefix}_finpro\/final_process\$\{cycle\}.dcd -o final_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv final_trajectory.dcd fintr.dcd\} output\]" 
   
   ###### FINAL MINIMIZATION ########
@@ -1282,7 +1280,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_inimin\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\$\{cycle\}.log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\""
 
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_finmin\" \"min.conf\"\] w\]"
@@ -1331,16 +1329,24 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_finmin\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\$\{cycle\}.log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\""
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
 
-  puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd \${output_prefix}_inimin\/initial_minimized\[expr \$\{cycle\}+1\].dcd -o initial_trajectory.dcd\} output\]"
+  puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd ${output_prefix}_inimin\/initial_minimized\[expr \$\{cycle\}+1\].dcd -o initial_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv initial_trajectory.dcd initr.dcd\} output\]" 
-  puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd \${output_prefix}_finmin\/final_minimized\[expr \$\{cycle\}+1\].dcd -o final_trajectory.dcd\} output\]"
+  puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd ${output_prefix}_finmin\/final_minimized\[expr \$\{cycle\}+1\].dcd -o final_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv final_trajectory.dcd fintr.dcd\} output\]"
+
+  if {$retry} {
+  puts $tcl_file "if {\[catch {open ${output_prefix}_inimin/initial_minimized\$cycle.coor r} fid\]} {"
+  puts $tcl_file "set cycle \[expr \$\{cycle\}-1\]"
+  puts $tcl_file "} elseif {\[catch {open ${output_prefix}_finmin/final_minimized\$cycle.coor r} fid\]} {"
+  puts $tcl_file "set cycle \[expr \$\{cycle\}-1\]"
+  puts $tcl_file "}"
+  }
   
   puts $tcl_file "mol delete all" 
   puts $tcl_file "mol load psf initial_ionized.psf"

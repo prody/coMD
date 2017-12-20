@@ -1070,13 +1070,12 @@ proc ::comd::Prepare_system {} {
   if {$max_steps eq ""} {set max_steps 0}
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
+  puts $tcl_file "puts \$sh_file \"export MKL_NUM_THREADS=[expr ${num_cores}/2]\""
   puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_initial.pdb initial_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \>& cycle_\${cycle}_ini_anmmc_log.txt \&\""
   puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_final.pdb final_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
-  #set result \[exec -ignorestderr \$python_path anmmc.py starting_initial.pdb initial_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps}\]\}"
-  #set result \[exec -ignorestderr \$python_path anmmc.py starting_final.pdb final_target.pdb ${initial_pdb} ${final_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps}\]\}"
   
   puts $tcl_file "mol delete all"
   puts $tcl_file "mol load psf initial_ionized.psf"
@@ -1223,6 +1222,13 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
+  if {$retry} {
+  puts $tcl_file "if {\[catch {open ${output_prefix}_inimin/initial_minimized\[expr \$\{cycle\}+1\].coor r} fid\]} {"
+  puts $tcl_file "continue"
+  puts $tcl_file "} elseif {\[catch {open ${output_prefix}_finmin/final_minimized\[expr \$\{cycle\}+1\].coor r} fid\]} {"
+  puts $tcl_file "continue"
+  puts $tcl_file "}"
+  }
 
   puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd ${output_prefix}_inipro\/initial_process\$\{cycle\}.dcd -o initial_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv initial_trajectory.dcd initr.dcd\} output\]" 
@@ -1341,10 +1347,10 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set status \[catch \{exec mv final_trajectory.dcd fintr.dcd\} output\]"
 
   if {$retry} {
-  puts $tcl_file "if {\[catch {open ${output_prefix}_inimin/initial_minimized\$cycle.coor r} fid\]} {"
-  puts $tcl_file "set cycle \[expr \$\{cycle\}-1\]"
-  puts $tcl_file "} elseif {\[catch {open ${output_prefix}_finmin/final_minimized\$cycle.coor r} fid\]} {"
-  puts $tcl_file "set cycle \[expr \$\{cycle\}-1\]"
+  puts $tcl_file "if {\[catch {open ${output_prefix}_inimin/initial_minimized\[expr \$\{cycle\}+1\].coor r} fid\]} {"
+  puts $tcl_file "continue"
+  puts $tcl_file "} elseif {\[catch {open ${output_prefix}_finmin/final_minimized\[expr \$\{cycle\}+1\].coor r} fid\]} {"
+  puts $tcl_file "continue"
   puts $tcl_file "}"
   }
   

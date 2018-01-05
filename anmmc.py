@@ -71,7 +71,7 @@ size=initial_pdb_ca.getResnums().shape[0]
 deviation = final_pdb_ca.getCoords() - initial_pdb_ca.getCoords()
 
 # Scale factor for steps
-scale_factor = sqrt(abs(devi*min(pdb_anm.getEigvals())))
+scale_factor = sqrt(abs(devi/min(pdb_anm.getEigvals())))
 
 # counts for metropolis sampling
 count1 = 0 # Up-hill moves

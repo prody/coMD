@@ -308,6 +308,7 @@ system. A charged system (if the protein is charged) may be obtained by unchecki
   grid [checkbutton $mfaio.neutralize_check -width 1 \
       -variable ::comd::neutralize] \
     -row 0 -column 10 -sticky e
+  $mfaio.neutralize_check select
 
   pack $mfaio -side top -ipadx 0 -ipady 5 -fill x -expand 1
 

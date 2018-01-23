@@ -39,7 +39,7 @@ else:
 initial_pdb_id = initial_pdbn.split('.')[0]
 final_pdb_id = final_pdbn.split('.')[0]
 
-log_file = open('cycle_{0}_'.format(comd_cycle_number) + initial_pdb_id + '_anmmc_log.txt','w')
+#log_file = open('cycle_{0}_'.format(int(comd_cycle_number)) + initial_pdb_id + '_anmmc_log.txt','w')
 
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
@@ -71,7 +71,7 @@ size=initial_pdb_ca.getResnums().shape[0]
 deviation = final_pdb_ca.getCoords() - initial_pdb_ca.getCoords()
 
 # Scale factor for steps
-scale_factor = sqrt(abs(devi*min(pdb_anm.getEigvals())))
+scale_factor = sqrt(abs(devi/min(pdb_anm.getEigvals())))
 
 # counts for metropolis sampling
 count1 = 0 # Up-hill moves
@@ -113,7 +113,7 @@ ensemble_final.setCoords(initial_pdb_ca)
 step_count = 0
 check_step_counts = [0]
 
-log_file.write('coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
+sys.stdout.write('coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
 #exit
 # MC Loop 
 for k in range(N):
@@ -168,7 +168,7 @@ for k in range(N):
         step_count += 1
 
     coord_diff = pdb_ca.getCoords() - initial_pdb_ca.getCoords()
-    log_file.write('{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
+    sys.stdout.write('{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
              '{:8.7f}'.format(rand) + ' ' + '{:8d}'.format(ID) + ' ' + '{:8d}'.format(k+1) + ' ' + '{:11d}'.format(step_count) + '\n')
 
     if linalg.norm(coord_diff.ravel()) > stepcutoff: 
@@ -178,8 +178,8 @@ for k in range(N):
     
 ensemble_final.addCoordset(pdb_ca.getCoords())
     
-writeDCD('cycle_{0}_'.format(comd_cycle_number) + initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd', ensemble_final)
-writeDCD('cycle_{0}_'.format(comd_cycle_number) + initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd', ensemble)
+writeDCD('cycle_{0}_'.format(int(comd_cycle_number)) + initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd', ensemble_final)
+writeDCD('cycle_{0}_'.format(int(comd_cycle_number)) + initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd', ensemble)
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
 savetxt(initial_pdb_id + '_ratio.dat', ratios)
 log_file.close()

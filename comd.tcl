@@ -897,7 +897,11 @@ proc ::comd::Prepare_system {} {
   	puts $tcl_file "set python_path ${python_path}\/python" 
   }
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $gpus_selected\\\"\""
+  if {[info exists gpu_selected]} { 
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $gpus_selected\\\"\"" 
+  } else {
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \\\"\""
+  }
   puts $tcl_file "file mkdir \"${output_prefix}_walker1_min\""
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker1_min\" \"min.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/walker1_ionized.pdb\""
@@ -1112,7 +1116,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $gpus_selected\\\"\""
+  if {[info exists gpu_selected]} { 
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $gpus_selected\\\"\"" 
+  } else {
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \\\"\""
+  }
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker1_pro\" \"pro.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/walker1_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ..\/walker1_ionized.psf\""
@@ -1240,7 +1248,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $gpus_selected\\\"\""
+  if {[info exists gpu_selected]} { 
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $gpus_selected\\\"\"" 
+  } else {
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \\\"\""
+  }
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker1_min\" \"min.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ../walker1_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ../walker1_ionized.psf\""

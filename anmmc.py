@@ -36,8 +36,20 @@ if len(ar) > 9 and ar[9].strip() is not '0':
 else:
     N=1000000
 
-initial_pdb_id = initial_pdbn.split('.')[0]
-final_pdb_id = final_pdbn.split('.')[0]
+if len(ar) > 10 and ar[9].strip() is not '0':
+    final_structure_dcd_name = ar[10]
+else:
+    final_structure_dcd_name = 'cycle_{0}_'.format(int(comd_cycle_number)) + \
+                                initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd'
+
+if len(ar) > 11 and ar[11].strip() is not '0':
+    ensemble_dcd_name = ar[11]
+else:
+    ensemble_dcd_name = 'cycle_{0}_'.format(int(comd_cycle_number)) + \
+                         initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd'
+
+initial_pdb_id = initial_pdbn[initial_pdbn.rfind('.')]
+final_pdb_id = final_pdbn[final_pdbn.rfind('.')]
 
 #log_file = open('cycle_{0}_'.format(int(comd_cycle_number)) + initial_pdb_id + '_anmmc_log.txt','w')
 
@@ -178,8 +190,8 @@ for k in range(N):
     
 ensemble_final.addCoordset(pdb_ca.getCoords())
     
-writeDCD('cycle_{0}_'.format(int(comd_cycle_number)) + initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd', ensemble_final)
-writeDCD('cycle_{0}_'.format(int(comd_cycle_number)) + initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd', ensemble)
+writeDCD(final_structure_dcd_name, ensemble_final)
+writeDCD(ensemble_dcd_name, ensemble)
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
 savetxt(initial_pdb_id + '_ratio.dat', ratios)
-log_file.close()
+#log_file.close()

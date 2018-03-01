@@ -1318,26 +1318,3 @@ proc ::comd::Prepare_system {} {
 proc comd_tk {} {
   ::comd::comdgui
 }
-
-set num_args 4
-
-if { $argc < 1 } {
-    puts "comd.tcl requires at least two arguments: filenames for the starting PDBs."
-    puts "Please provide the same filename twice to calculate a random walk "
-    puts "rather than a transition."
-} else {
-    # Take parameter values from input arguments as far as possible
-    for {set index 0} {$index < $argc -1} {incr index} {
-        if {$index eq 0} {set walker1_pdb [lindex $argv $index]}
-        if {$index eq 1} {set walker2_pdb [lindex $argv $index]}
-        if {$index eq 2} {set walker1_chid [lindex $argv $index]}
-        if {$index eq 3} {set walker2_chid [lindex $argv $index]}
-    }
-    # Check how far it got and fill in the remaining values
-    for {set index $index} {$index < $num_args -1} {incr index} {
-        if {$index eq 2} {set walker1_chid ""}
-        if {$index eq 3} {set walker2_chid ""}
-    } 
-}
-
-exit

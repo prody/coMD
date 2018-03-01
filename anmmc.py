@@ -126,7 +126,7 @@ step_count = 0
 check_step_counts = [0]
 
 sys.stdout.write('coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
-#exit
+
 # MC Loop 
 for k in range(N):
     pdb_ca_temp = pdb_ca.copy()

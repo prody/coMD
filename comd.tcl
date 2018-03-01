@@ -65,13 +65,13 @@ namespace eval ::comd:: {
   variable walker1_chid 
   variable walker2_chid 
   # Ionization parameters
-  variable topo_file 
+  variable topo_files 
   variable solvent_padding_x
   variable solvent_padding_y
   variable solvent_padding_z
   variable neutralize 
   # Minimization parameters
-  variable para_file 
+  variable para_files 
   variable temperature 
   variable min_length 
   # ANM-MC-Metropolis parameters
@@ -227,8 +227,8 @@ proc ::comd::comdgui {} {
   
   pack $mfaif -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
-  # Enter ionization options
-  set mfaio [labelframe $mfa.ionize_options -text "Ionization parameters" -bd 2]
+  # Enter Solvation options
+  set mfaio [labelframe $mfa.ionize_options -text "Solvation parameters" -bd 2]
 
   #Solvation box padding and counter ions
   grid [button $mfaio.padding_help -text "?" -width 1 -padx 0 -pady 0 -command {
@@ -270,7 +270,7 @@ based on topology parameters provided. Suggested file extension is .top but othe
   listbox $mfaio.topo_frame.list -activestyle dotbox \
     -yscroll "$mfaio.topo_frame.scroll set" \
     -width 45 -height 6 -setgrid 1 -selectmode browse \
-    -listvariable ::comd::topo_file
+    -listvariable ::comd::topo_files
   frame $mfaio.topo_frame.buttons
   pack $mfaio.topo_frame.list $mfaio.topo_frame.scroll -side left -fill y -expand 1
 
@@ -280,11 +280,11 @@ based on topology parameters provided. Suggested file extension is .top but othe
           -filetypes { {{Topology files} {.top .TOP .rtf .RTF .str .STR}} {{All files} {*}} }]
         if {$tempfiles!=""} {
           foreach tempfile $tempfiles {
-            if {[lsearch $::comd::topo_file $tempfile] > -1} {
+            if {[lsearch $::comd::topo_files $tempfile] > -1} {
               tk_messageBox -type ok -title "WARNING" \
                -message "$tempfile has already been added to the list."
             } else {
-              lappend ::comd::topo_file $tempfile
+              lappend ::comd::topo_files $tempfile
             }
           }
         }
@@ -319,7 +319,7 @@ based on topology parameters provided. Suggested file extension is .top but othe
         -message "After running targeted molecular dynamics simulations the walker2 structure needs to be equilibrated into a stable state. Longer minimization creates 
         more stable structures which will guarantee users have a stable targeted molecular dynamics simulation. The units are in ps. "}] \
     -row 0 -column 6 -sticky w
-  grid [label $mfamo.length_label -text "Minimization length (ps):   " -width 21] \
+  grid [label $mfamo.length_label -text "Minimization length (steps):" -width 21] \
     -row 0 -column 7 -sticky w
   grid [entry $mfamo.length_entry -width 17 \
     -textvariable ::comd::min_length] \
@@ -339,7 +339,7 @@ based on topology parameters provided. Suggested file extension is .top but othe
   listbox $mfamo.para_frame.list -activestyle dotbox \
     -yscroll "$mfamo.para_frame.scroll set" \
     -width 45 -height 6 -setgrid 1 -selectmode browse \
-    -listvariable ::comd::para_file
+    -listvariable ::comd::para_files
   frame $mfamo.para_frame.buttons
   pack $mfamo.para_frame.list $mfamo.para_frame.scroll \
     -side left -fill y -expand 1
@@ -350,11 +350,11 @@ based on topology parameters provided. Suggested file extension is .top but othe
           -filetypes { {{Parameter files} {.par .PAR .prm .PRM .str .STR}} {{All files} {*}} }]
         if {$tempfiles!=""} {
           foreach tempfile $tempfiles {
-            if {[lsearch $::comd::para_file $tempfile] > -1} {
+            if {[lsearch $::comd::para_files $tempfile] > -1} {
               tk_messageBox -type ok -title "WARNING" \
                 -message "$tempfile has already been added to the list."
             } else {
-              lappend ::comd::para_file $tempfile
+              lappend ::comd::para_files $tempfile
             }
           }
         }
@@ -593,9 +593,9 @@ proc ::comd::Prepare_system {} {
   variable walker1_chid
   variable walker2_chid
   variable pro
-  variable topo_file
+  variable topo_files
   variable temperature
-  variable para_file
+  variable para_files
   variable min_length
   variable percent_ipro
   variable percent_ibut
@@ -681,10 +681,11 @@ proc ::comd::Prepare_system {} {
   mol delete all
   mol new init.pdb
 
-  if {$topo_file == ""} {
-  set topo_file "${COMD_PATH}/top_all27_prot_lipid.top"
+  if {$topo_files == ""} {
+  set topo_files {"${COMD_PATH}/top_all36_prot.rtf" 
+                 "${COMD_PATH}/toppar_water_ions.str"}
   }
-  autopsf -mol top -top $topo_file -prefix pro
+  autopsf -mol top -top $topo_files -prefix pro
   solvate pro_formatted_autopsf.psf pro_formatted_autopsf.pdb \
     -x $solvent_padding_x -y $solvent_padding_y -z $solvent_padding_z \
     +x $solvent_padding_x +y $solvent_padding_y +z $solvent_padding_z -o pro_wb
@@ -740,7 +741,7 @@ proc ::comd::Prepare_system {} {
   $pro writepdb fino.pdb
   mol delete all
   mol new fino.pdb
-  autopsf -mol top -top $topo_file -prefix pro
+  autopsf -mol top -top $topo_files -prefix pro
   solvate pro_formatted_autopsf.psf pro_formatted_autopsf.pdb \
     -x $solvent_padding_x -y $solvent_padding_y -z $solvent_padding_z \
     +x $solvent_padding_x +y $solvent_padding_y +z $solvent_padding_z -o pro_wb
@@ -789,8 +790,10 @@ proc ::comd::Prepare_system {} {
   puts $log_file "Simulation: NAMD configuration files for minimization written in ${output_prefix}_walker1_min and ${output_prefix}_walker2_min."
   close $log_file
 
-  if {$para_file == ""} {
-    set para_file "${COMD_PATH}/par_all27_prot_lipid.prm"
+  if {$para_files == ""} {
+    set para_files {"${COMD_PATH}/par_all36_prot.prm" 
+                   "${COMD_PATH}/par_all36m_prot.prm" 
+                   "${COMD_PATH}/toppar_water_ions.str"}
   }
   set tcl_file [open [file join "$outputdir" "$output_prefix.tcl"] w] 
   puts $tcl_file "#This tcl file will run full collective molecular dynamics simulation with given parameters."
@@ -806,10 +809,12 @@ proc ::comd::Prepare_system {} {
   	puts $tcl_file "set python_path ${python_path}\/python" 
   }
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  if {[info exists gpu_selected]} { 
+  if {[info exists gpu_selected] && [info exists num_cores]} { 
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $gpus_selected\\\"\"" 
-  } else {
+  } elseif {[info exists num_cores]} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \\\"\""
+  } else {
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
   }
   puts $tcl_file "file mkdir \"${output_prefix}_walker1_min\""
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker1_min\" \"min0.conf\"\] w\]"
@@ -820,7 +825,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
 
-  foreach tempfile $para_file {
+  foreach tempfile $para_files {
     puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
   }
 
@@ -845,12 +850,12 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"langevinTemp \\\$temperature\""
   puts $tcl_file "puts \$namd_file \"langevinHydrogen on\""
   puts $tcl_file "puts \$namd_file \"outputname \\\$outputname\""
-  puts $tcl_file "puts \$namd_file \"outputEnergies [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"outputPressure [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"restartfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"xstfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"minimize [expr $min_length*500]\""
+  puts $tcl_file "puts \$namd_file \"outputEnergies $min_length\""
+  puts $tcl_file "puts \$namd_file \"outputPressure $min_length\""
+  puts $tcl_file "puts \$namd_file \"restartfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"dcdfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"xstfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"minimize $min_length\""
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
    
@@ -864,7 +869,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
 
-  foreach tempfile $para_file {
+  foreach tempfile $para_files {
     puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
   }
 
@@ -889,12 +894,12 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"langevinTemp \\\$temperature\""
   puts $tcl_file "puts \$namd_file \"langevinHydrogen on\""
   puts $tcl_file "puts \$namd_file \"outputname \\\$outputname\""
-  puts $tcl_file "puts \$namd_file \"outputEnergies [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"outputPressure [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"restartfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"xstfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"minimize [expr $min_length*500]\""
+  puts $tcl_file "puts \$namd_file \"outputEnergies $min_length\""
+  puts $tcl_file "puts \$namd_file \"outputPressure $min_length\""
+  puts $tcl_file "puts \$namd_file \"restartfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"dcdfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"xstfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"minimize $min_length\""
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   
@@ -1023,10 +1028,12 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  if {[info exists gpu_selected]} { 
+  if {[info exists gpu_selected] && [info exists num_cores]} { 
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $gpus_selected\\\"\"" 
-  } else {
+  } elseif {[info exists num_cores]} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \\\"\""
+  } else {
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
   }
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker1_pro\" \"pro.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/walker1_ionized.pdb\""
@@ -1036,7 +1043,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
 
-  foreach tempfile $para_file {
+  foreach tempfile $para_files {
     puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
   }
 
@@ -1090,7 +1097,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
 
-  foreach tempfile $para_file {
+  foreach tempfile $para_files {
     puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
   }
 
@@ -1152,10 +1159,12 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  if {[info exists gpu_selected]} { 
+  if {[info exists gpu_selected] && [info exists num_cores]} { 
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \+devices $gpus_selected\\\"\"" 
-  } else {
+  } elseif {[info exists num_cores]} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \\\"\""
+  } else {
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
   }
   puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker1_min\" \"min0.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ../walker1_ionized.pdb\""
@@ -1165,7 +1174,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
   
-  foreach tempfile $para_file {
+  foreach tempfile $para_files {
     puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
   }
   
@@ -1194,12 +1203,12 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"langevinHydrogen on\""
   puts $tcl_file "puts \$namd_file \"outputname \\\$outputname\""
   puts $tcl_file "puts \$namd_file \"restartname \\\$restartname\""
-  puts $tcl_file "puts \$namd_file \"outputEnergies [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"outputPressure [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"restartfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"xstfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"minimize [expr $min_length*500]\""
+  puts $tcl_file "puts \$namd_file \"outputEnergies $min_length\""
+  puts $tcl_file "puts \$namd_file \"outputPressure $min_length\""
+  puts $tcl_file "puts \$namd_file \"restartfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"dcdfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"xstfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"minimize $min_length\""
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_walker1_min\""
@@ -1214,7 +1223,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
   
-  foreach tempfile $para_file {
+  foreach tempfile $para_files {
     puts $tcl_file "puts \$namd_file \"parameters $tempfile\""
   }
 
@@ -1243,12 +1252,12 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"langevinHydrogen on\""
   puts $tcl_file "puts \$namd_file \"outputname \\\$outputname\""
   puts $tcl_file "puts \$namd_file \"restartname \\\$restartname\""
-  puts $tcl_file "puts \$namd_file \"outputEnergies [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"outputPressure [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"restartfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"xstfreq [expr $min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"minimize [expr $min_length*500]\""
+  puts $tcl_file "puts \$namd_file \"outputEnergies $min_length\""
+  puts $tcl_file "puts \$namd_file \"outputPressure $min_length\""
+  puts $tcl_file "puts \$namd_file \"restartfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"dcdfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"xstfreq $min_length\""
+  puts $tcl_file "puts \$namd_file \"minimize $min_length\""
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_walker2_min\""
@@ -1319,25 +1328,62 @@ proc comd_tk {} {
   ::comd::comdgui
 }
 
-set num_args 4
+if {[info exists w] eq 0 && [info exists argc] eq 1} {
 
-if { $argc < 1 } {
-    puts "comd.tcl requires at least two arguments: filenames for the starting PDBs."
-    puts "Please provide the same filename twice to calculate a random walk "
-    puts "rather than a transition."
-} else {
-    # Take parameter values from input arguments as far as possible
-    for {set index 0} {$index < $argc -1} {incr index} {
-        if {$index eq 0} {set walker1_pdb [lindex $argv $index]}
-        if {$index eq 1} {set walker2_pdb [lindex $argv $index]}
-        if {$index eq 2} {set walker1_chid [lindex $argv $index]}
-        if {$index eq 3} {set walker2_chid [lindex $argv $index]}
-    }
-    # Check how far it got and fill in the remaining values
-    for {set index $index} {$index < $num_args -1} {incr index} {
-        if {$index eq 2} {set walker1_chid ""}
-        if {$index eq 3} {set walker2_chid ""}
-    } 
+  set num_args 19
+
+  if { $argc < 3 } {
+      puts "comd.tcl requires at least two arguments: filenames for the starting PDBs."
+      puts "Please provide the same filename twice to calculate a random walk "
+      puts "rather than a transition."
+  } else {
+      # Take parameter values from input arguments as far as possible
+      for {set index 0} {$index < $argc -1} {incr index} {
+          if {$index eq 0} {set walker1_pdb [lindex $argv $index]}
+          if {$index eq 1} {set walker2_pdb [lindex $argv $index]}
+          if {$index eq 2} {set walker1_chid [lindex $argv $index]}
+          if {$index eq 3} {set walker2_chid [lindex $argv $index]}
+          if {$index eq 4} {set solvent_padding_x [lindex $argv $index]}
+          if {$index eq 5} {set solvent_padding_y [lindex $argv $index]}
+          if {$index eq 6} {set solvent_padding_z [lindex $argv $index]}
+          if {$index eq 7} {set temperature [lindex $argv $index]}
+          if {$index eq 8} {set min_length [lindex $argv $index]}
+          if {$index eq 9} {set anm_cutoff [lindex $argv $index]}
+          if {$index eq 10} {set dev_mag [lindex $argv $index]}
+          if {$index eq 11} {set accept_para [lindex $argv $index]}
+          if {$index eq 12} {set max_steps [lindex $argv $index]}
+          if {$index eq 13} {set spring_k [lindex $argv $index]}
+          if {$index eq 14} {set tmd_len [lindex $argv $index]}
+          if {$index eq 15} {set comd_cycle [lindex $argv $index]}
+          if {$index eq 16} {set gpus_selected [lindex $argv $index]}
+          if {$index eq 17} {set num_cores [lindex $argv $index]}
+          if {$index eq 18} {set outputdir [lindex $argv $index]}
+          if {$index eq 19} {set output_prefix [lindex $argv $index]}
+      }
+      # Fill in the remaining values
+      for {set index $index} {$index < $num_args} {incr index} {
+          if {$index eq 2} {set walker1_chid ""}
+          if {$index eq 3} {set walker2_chid ""}
+          if {$index eq 4} {set solvent_padding_x 10}
+          if {$index eq 5} {set solvent_padding_y 10}
+          if {$index eq 6} {set solvent_padding_z 10}
+          if {$index eq 7} {set temperature 298}
+          if {$index eq 8} {set min_length 500}
+          if {$index eq 9} {set anm_cutoff ""}
+          if {$index eq 10} {set dev_mag ""}
+          if {$index eq 11} {set accept_para ""}
+          if {$index eq 12} {set max_steps ""}
+          if {$index eq 13} {set spring_k 20000}
+          if {$index eq 14} {set tmd_len 10}
+          if {$index eq 15} {set comd_cycle 30}
+          if {$index eq 18} {set outputdir ""}
+          if {$index eq 19} {set output_prefix ""}
+      }
+      # Set other parameters to default values
+      set topo_files ""
+      set para_files ""
+      set run_now 1
+  }
+
+  exit
 }
-
-exit

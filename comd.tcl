@@ -32,7 +32,6 @@ package require autopsf
 package require pbctools
 package require exectool
 
-
 set COMD_PATH $env(COMD_PATH)
 set PACKAGE_PATH "$COMD_PATH"
 set PACKAGEPATH "$COMD_PATH"
@@ -166,6 +165,7 @@ proc ::comd::comdgui {} {
   set mfa [frame $mf.prepare]
   # Select input files
   set mfaif [labelframe $mfa.input_files -text "Protein structures:" -bd 2]
+
   # Initial PDB
   grid [button $mfaif.ini_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
@@ -204,7 +204,7 @@ proc ::comd::comdgui {} {
 
   grid [button $mfaif.inich_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "The chain ID for the walker1 and walker2 structure which should be in the previously imported PDB file."}] \
+        -message "Chain IDs for selecting the walker1 structure from the previously imported PDB file. If blank, all chains will be used."}] \
     -row 3 -column 0 -sticky w
   grid [label $mfaif.inich_label -text "Initial PDB chain ID:         " -width 21] \
     -row 3 -column 1 -sticky w
@@ -217,7 +217,7 @@ proc ::comd::comdgui {} {
 
   grid [button $mfaif.finch_help -text "?" -width 1 -padx 0 -pady 0 -command {
       tk_messageBox -type ok -title "HELP" \
-        -message "The chain ID for the walker1 structure which should be in the previously imported PDB file."}] \
+        -message "Chain IDs for selecting the walker2 structure from the previously imported PDB file. If blank, all chains will be used."}] \
     -row 3 -column 6 -sticky w
   grid [label $mfaif.finch_label -text "Final PDB chain ID:          " -width 21] \
     -row 3 -column 7 -sticky w
@@ -252,20 +252,6 @@ constraint of preserving the ratio of 20 water molecules per probe molecule."}] 
 
   grid [label $mfaio.separatpr_label -width 6] \
     -row 1 -column 5 -sticky w
-
-  grid [button $mfaio.neutralize_help -text "?" -width 1 -padx 0 -pady 0 -command {
-    tk_messageBox -type ok -title "HELP" \
-      -message "By default, counter ions will be added to neutralize a charged \
-system. A charged system (if the protein is charged) may be obtained by unchecking this option."}] \
-    -row 0 -column 6 -sticky w
-  grid [label $mfaio.neutralize_label -text "Add counter ions:              " -width 21] \
-    -row 0 -column 7 -sticky w
-  grid [label $mfaio.separatpr2_label -width 13] \
-    -row 1 -column 8 -columnspan 2 -sticky w
-  grid [checkbutton $mfaio.neutralize_check -width 1 \
-      -variable ::comd::neutralize] \
-    -row 0 -column 10 -sticky e
-  $mfaio.neutralize_check select
 
   pack $mfaio -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
@@ -618,7 +604,6 @@ proc ::comd::Prepare_system {} {
   variable solvent_padding_x
   variable solvent_padding_y
   variable solvent_padding_z
-  variable neutralize
   variable output_prefix
   variable comd_cycle
   variable anm_cutoff 
@@ -686,7 +671,12 @@ proc ::comd::Prepare_system {} {
   resetpsf
   mol delete all
   mol new $walker1_pdb
-  set pro [atomselect top "not altloc B and not hydrogen and chain ${walker1_chid}"]
+  if {$walker1_chid eq ""} {
+    set pro [atomselect top "not altloc B and not hydrogen"]
+  } else {
+    set pro [atomselect top "not altloc B and not hydrogen and chain ${walker1_chid}"]
+  }
+
   $pro writepdb init.pdb
   mol delete all
   mol new init.pdb
@@ -699,27 +689,25 @@ proc ::comd::Prepare_system {} {
     -x $solvent_padding_x -y $solvent_padding_y -z $solvent_padding_z \
     +x $solvent_padding_x +y $solvent_padding_y +z $solvent_padding_z -o pro_wb
 
-  if {$neutralize} {
-    set totalcharge 0
-    foreach charge [[atomselect top "all"] get charge] {
-      set totalcharge [expr $totalcharge + $charge]
-    }
-    # number of CL and NA atoms are determined
-    puts $log_file "Ionization: Initial PDB System has a total charge of $totalcharge electrons."
-    if {$totalcharge > 0} {
-        set nna 0
-        set ncl [expr round($totalcharge)]
-        puts $log_file "Ionization: $ncl chloride ions will be added to walker1 PDB."
-    } else {
-        set ncl 0
-        set nna [expr -1 * round($totalcharge)]
-        puts $log_file "Ionization: $nna sodium ions will be added to walker1 PDB."
-    }
-    if {$ncl > 0 | $nna > 0} {
-        autoionize -psf pro_wb.psf -pdb pro_wb.pdb \
-        -o [file join ${outputdir} "walker1_ionized"] -from 5 -between 5 -ncl $ncl -nna $nna -seg ION
-        puts $log_file "Ionization: Initial PDB System is ionized to become neutral."
-    }
+  set totalcharge 0
+  foreach charge [[atomselect top "all"] get charge] {
+    set totalcharge [expr $totalcharge + $charge]
+  }
+  # number of CL and NA atoms are determined
+  puts $log_file "Ionization: Initial PDB System has a total charge of $totalcharge electrons."
+  if {$totalcharge > 0} {
+      set nna 0
+      set ncl [expr round($totalcharge)]
+      puts $log_file "Ionization: $ncl chloride ions will be added to walker1 PDB."
+  } else {
+      set ncl 0
+      set nna [expr -1 * round($totalcharge)]
+      puts $log_file "Ionization: $nna sodium ions will be added to walker1 PDB."
+  }
+  if {$ncl > 0 | $nna > 0} {
+      autoionize -psf pro_wb.psf -pdb pro_wb.pdb \
+      -o [file join ${outputdir} "walker1_ionized"] -from 5 -between 5 -ncl $ncl -nna $nna -seg ION
+      puts $log_file "Ionization: Initial PDB System is ionized to become neutral."
   }
   
   mol new init.pdb
@@ -744,7 +732,11 @@ proc ::comd::Prepare_system {} {
   resetpsf
   mol delete all
   mol new $walker2_pdb
-  set pro [atomselect top "not altloc B and not hydrogen and chain ${walker2_chid}"]
+  if {$walker1_chid eq ""} {
+    set pro [atomselect top "not altloc B and not hydrogen"]
+  } else {
+    set pro [atomselect top "not altloc B and not hydrogen and chain ${walker2_chid}"]
+  }
   $pro writepdb fino.pdb
   mol delete all
   mol new fino.pdb
@@ -990,7 +982,9 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_filename \"${output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"export MKL_NUM_THREADS=[expr ${num_cores}/2]\""
   puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker1.pdb walker1_target.pdb ${walker1_pdb} ${walker2_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \>& cycle_\${cycle}_ini_anmmc_log.txt \&\""
-  puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker2.pdb walker2_target.pdb ${walker1_pdb} ${walker2_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
+  if {$walker1_pdb eq $walker2_pdb} {
+    puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker2.pdb walker2_target.pdb ${walker2_pdb} ${walker1_pdb} \$cycle ${anm_cutoff} ${dev_mag} ${accept_para} ${max_steps} \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
+  }
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
@@ -1324,3 +1318,26 @@ proc ::comd::Prepare_system {} {
 proc comd_tk {} {
   ::comd::comdgui
 }
+
+set num_args 4
+
+if { $argc < 1 } {
+    puts "comd.tcl requires at least two arguments: filenames for the starting PDBs."
+    puts "Please provide the same filename twice to calculate a random walk "
+    puts "rather than a transition."
+} else {
+    # Take parameter values from input arguments as far as possible
+    for {set index 0} {$index < $argc -1} {incr index} {
+        if {$index eq 0} {set walker1_pdb [lindex $argv $index]}
+        if {$index eq 1} {set walker2_pdb [lindex $argv $index]}
+        if {$index eq 2} {set walker1_chid [lindex $argv $index]}
+        if {$index eq 3} {set walker2_chid [lindex $argv $index]}
+    }
+    # Check how far it got and fill in the remaining values
+    for {set index $index} {$index < $num_args -1} {incr index} {
+        if {$index eq 2} {set walker1_chid ""}
+        if {$index eq 3} {set walker2_chid ""}
+    } 
+}
+
+exit

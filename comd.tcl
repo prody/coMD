@@ -1327,6 +1327,7 @@ proc ::comd::Prepare_system {} {
 proc comd_tk {} {
   ::comd::comdgui
 }
+<<<<<<< HEAD
 
 if {[info exists w] eq 0 && [info exists argc] eq 1} {
 
@@ -1387,3 +1388,5 @@ if {[info exists w] eq 0 && [info exists argc] eq 1} {
 
   exit
 }
+=======
+>>>>>>> 495782dce53d048113c7f4e86bd3698d9b970c85

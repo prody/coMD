@@ -86,7 +86,7 @@ namespace eval ::comd:: {
   # Simulation options
   variable comd_cycle 
   variable num_cores
-  variable retry
+  variable run_now
   variable gpus_selected
   variable python_path ""
   # output options
@@ -99,10 +99,7 @@ namespace eval ::comd:: {
   variable titles [list "Prepare System"]
   variable interfaces [list "prepare"]
   variable which_mode [lindex $titles 0]
-
-
 }
-
 
 proc comd::Logview {logfilename} {
   variable logcount
@@ -133,18 +130,7 @@ proc comd::Logview {logfilename} {
   }
 
   $log.text configure -state normal
-  #set count 0
-  #set tabwidth 0
-  #foreach family [lsort -dictionary [font families]] {
-  #    $log.text tag configure f[incr count] -font [list $family 10]
-  #    $log.text insert end ${family}:\t {} \
-  #            "This is a simple sampler\n" f$count
-  #    set w [font measure [$log.text cget -font] ${family}:]
-  #    if {$w+5 > $tabwidth} {
-  #        set tabwidth [expr {$w+5}]
-  #        $log.text configure -tabs $tabwidth
-  #    }
-  #}
+
   $log.text delete 1.0 end
   set logfile [open $logfilename "r"]
   set line ""
@@ -161,12 +147,7 @@ proc ::comd::comdgui {} {
 
   global env
 
-  # Determine whether PSF and PDB are loaded (based on Solvate plugin code)
-  # set ::comd::walker1_pdb ""
-  # set ::comd::walker2_pdb ""
-
-
-  # If already walker1ized, just turn on
+  # If already initialized, just turn on
   if [winfo exists .comdgui] {
     wm deiconify .comdgui
     raise .comdgui
@@ -178,31 +159,8 @@ proc ::comd::comdgui {} {
   wm title $w "COllective Molecular Dynamics v$::comd::version"
   wm resizable $w 0 0
 
-#   set wif [frame $w.interface_frame]
-#   button $wif.help -text "?" -padx 0 -pady 3 -command {
-#       tk_messageBox -type ok -title "HELP" \
-#       -message "Use option menu to change the active interface. There are\
-# two interfaces to facilitate the COllective Molecular Dynamics.\n\n\
-# [lindex $::druggability::titles 0]\n\
-# Prepare protein in a water-probe mixture box or in a water-only box using\
-# this interface. Also, by default generic NAMD input files are outputed.\
-# Protein PSF and PDB files that also \
-# contains cofactors/ions etc. are required from the user.\n\n\
-# "}
-#   variable titles
-#   tk_optionMenu $wif.list ::comd::which_mode "System Setup"
-#   $wif.list.menu delete 0
-#   $wif.list.menu add radiobutton -label [lindex $titles 0] \
-#     -variable ::comd::which_mode \
-#     -command {::comd::Switch_mode "prepare"}
-#   pack $wif.help -side left
-#   pack $wif.list -side left -expand 1 -fill x
-#   pack $wif -pady 2 -expand 1 -fill x
-
   # Set main frame
   set mf [frame $w.main_frame]
-
-  # VISUALIZE results
   
   # Prepare System and Simulation Files
   set mfa [frame $mf.prepare]
@@ -267,7 +225,6 @@ proc ::comd::comdgui {} {
     -textvariable ::comd::walker2_chid] \
     -row 3 -column 8 -columnspan 3 -sticky ew
   
-    
   pack $mfaif -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
   # Enter ionization options
@@ -544,16 +501,16 @@ the spring constant term shows the force applied to a given structure to reach t
   grid [label $mfaso.separatpr1_label -width 6] \
     -row 0 -column 5 -sticky w
 
-  grid [button $mfaso.retry_help -text "?" -width 1 -padx 0 -pady 0 -command {
+  grid [button $mfaso.run_help -text "?" -width 1 -padx 0 -pady 0 -command {
     tk_messageBox -type ok -title "HELP" \
       -message "Checking this option enables retries if a file isn't found as often happens if the system explodes. This option may be helpful as this is the main cause of crashes."}] \
     -row 0 -column 6 -sticky w
-  grid [label $mfaso.retry_label -text "Retry if no file:                  " -width 21] \
+  grid [label $mfaso.run_label -text "Run now:                           " -width 21] \
     -row 0 -column 7 -sticky w
   grid [label $mfaso.separatpr2_label -width 13] \
     -row 1 -column 8 -columnspan 2 -sticky w
-  grid [checkbutton $mfaso.retry_check -width 1 \
-      -variable ::comd::retry] \
+  grid [checkbutton $mfaso.run_check -width 1 \
+      -variable ::comd::run_now] \
     -row 0 -column 10 -sticky e
 
   grid [button $mfaso.gpu_id_help -text "?" -width 1 -padx 0 -pady 0 -command {
@@ -582,11 +539,7 @@ the spring constant term shows the force applied to a given structure to reach t
   
   pack $mfaso -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
-
-
   ########################################4
-
-
   set mfaoo [labelframe $mfa.output_options -text "Output options:" -bd 2]
 
   grid [button $mfaoo.outdir_help -text "?" -width 1 -padx 0 -pady 0 -command {
@@ -629,34 +582,6 @@ A unique and descriptive prefix choice may allow running multiple simulations in
 
   return $w
 }
-
-
-# proc ::druggability::Switch_mode {which_mode} {
-#   # change GUI layout
-#   variable w
-#   pack forget $w.main_frame.prepare $w.main_frame.process $w.main_frame.analyze $w.main_frame.evaluate $w.main_frame.visualize
-#   pack $w.main_frame.$which_mode -side top -padx 0 -pady 0 -fill x -expand 1
-#   variable interface $which_mode
-# }
-
-# proc ::druggability::Load_protein {} {
-#   # load protein and set molid
-#   variable walker1_pro
-#   variable walker2_pro
-#   variable walker1_chid
-#   variable walker2_chid
-#   if {$::druggability::walker1_pdb != "" && $::druggability::walker2_pdb != ""} {
-#     mol new $::druggability::walker1_pdb 
-#     set walker1_pro [atomselect top "protein and not altloc B and not hydrogen and chain $walker1_chid"]
-#     mol new $::druggability::walker2_pdb 
-#     set walker2_pro [atomselect top "protein and not altloc B and not hydrogen and chain $walker2_chid"]
-#     return 1
-#   } else {
-#     tk_messageBox -type ok -title "ERROR" \
-#       -message "Both PDB files must be specified."
-#     return 0
-#   }
-# }
 
 proc ::comd::Prepare_system {} {
 
@@ -703,7 +628,7 @@ proc ::comd::Prepare_system {} {
   variable spring_k
   variable tmd_len
   variable num_cores
-  variable retry
+  variable run_now
   variable gpus_selected
   variable outputdir
   variable python_path
@@ -724,8 +649,6 @@ proc ::comd::Prepare_system {} {
       -message "Both PDB files must be specified."
     return
   }
-
-  #set percent_total [expr $percent_acam + $percent_ibut + $percent_ipro + $percent_acetipam]
 
   if {$solvent_padding_z < 4} {
     tk_messageBox -type ok -title "ERROR" \
@@ -760,8 +683,6 @@ proc ::comd::Prepare_system {} {
 
   
   ####### SOLVATION AND IONIZATION OF INITIAL PROTEIN STRUCTURE #######
-
-
   resetpsf
   mol delete all
   mol new $walker1_pdb
@@ -777,7 +698,6 @@ proc ::comd::Prepare_system {} {
   solvate pro_formatted_autopsf.psf pro_formatted_autopsf.pdb \
     -x $solvent_padding_x -y $solvent_padding_y -z $solvent_padding_z \
     +x $solvent_padding_x +y $solvent_padding_y +z $solvent_padding_z -o pro_wb
-  # DELETE solvated molecule
 
   if {$neutralize} {
     set totalcharge 0
@@ -833,8 +753,6 @@ proc ::comd::Prepare_system {} {
     -x $solvent_padding_x -y $solvent_padding_y -z $solvent_padding_z \
     +x $solvent_padding_x +y $solvent_padding_y +z $solvent_padding_z -o pro_wb
 
-  # # DELETE solvated molecule
-
   if {$neutralize} {
     set totalcharge 0
     foreach charge [[atomselect top "all"] get charge] {
@@ -876,7 +794,6 @@ proc ::comd::Prepare_system {} {
   set fzlen [expr {$fzmax-$fzmin+16.0}]
   
   ####### INITIAL MINIMIZATION OF STARTING PROTEIN STRUCTURES #######
- 
   puts $log_file "Simulation: NAMD configuration files for minimization written in ${output_prefix}_walker1_min and ${output_prefix}_walker2_min."
   close $log_file
 
@@ -1025,15 +942,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "mol delete all"
   puts $tcl_file "resetpsf"
   puts $tcl_file "mol load psf walker1_ionized.psf"
-
-  if {$retry} {
   puts $tcl_file "if {\[catch {open ${output_prefix}_walker1_min/walker1_minimized\$cycle.coor r} fid\]} {"
   puts $tcl_file "set cycle \[expr \$\{cycle\}-1\]"
   puts $tcl_file "} elseif {\[catch {open ${output_prefix}_walker2_min/walker2_minimized\$cycle.coor r} fid\]} {"
   puts $tcl_file "set cycle \[expr \$\{cycle\}-1\]"
   puts $tcl_file "}"
-  }
-
   puts $tcl_file "mol addfile ${output_prefix}_walker1_min/walker1_minimized\$cycle.coor"
   puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set s2 \[atomselect top \"all\"\]"
@@ -1231,14 +1144,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
-  if {$retry} {
   puts $tcl_file "if {\[catch {open ${output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}+1\].coor r} fid\]} {"
   puts $tcl_file "continue"
   puts $tcl_file "} elseif {\[catch {open ${output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}+1\].coor r} fid\]} {"
   puts $tcl_file "continue"
   puts $tcl_file "}"
-  }
-
   puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd ${output_prefix}_walker1_pro\/walker1_process\$\{cycle\}.dcd -o walker1_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv walker1_trajectory.dcd initr.dcd\} output\]" 
   puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd ${output_prefix}_walker2_pro\/walker2_process\$\{cycle\}.dcd -o walker2_trajectory.dcd\} output\]"
@@ -1358,15 +1268,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set status \[catch \{exec mv walker1_trajectory.dcd initr.dcd\} output\]" 
   puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd ${output_prefix}_walker2_min\/walker2_minimized\[expr \$\{cycle\}+1\].dcd -o walker2_trajectory.dcd\} output\]"
   puts $tcl_file "set status \[catch \{exec mv walker2_trajectory.dcd fintr.dcd\} output\]"
-
-  if {$retry} {
   puts $tcl_file "if {\[catch {open ${output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}+1\].coor r} fid\]} {"
   puts $tcl_file "continue"
   puts $tcl_file "} elseif {\[catch {open ${output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}+1\].coor r} fid\]} {"
   puts $tcl_file "continue"
   puts $tcl_file "}"
-  }
-  
   puts $tcl_file "mol delete all" 
   puts $tcl_file "mol load psf walker1_ionized.psf"
   puts $tcl_file "mol addfile ${output_prefix}_walker1_min/walker1_minimized\${cycle}.coor" 
@@ -1387,7 +1293,8 @@ proc ::comd::Prepare_system {} {
   }
 
   puts $tcl_file "}"
-  #end of loop started on line 1007
+  #end of loop started on line 940
+
   puts $tcl_file "set status \[catch \{exec mv initr.dcd walker1_trajectory.dcd\} output\]" 
   puts $tcl_file "set status \[catch \{exec mv fintr.dcd walker2_trajectory.dcd\} output\]" 
   close $tcl_file
@@ -1403,34 +1310,17 @@ proc ::comd::Prepare_system {} {
 
   file copy -force $COMD_PATH/anmmc.py $outputdir/anmmc.py
 
-  #source $tcl_file_name
-
+  if {$run_now} {
+    # Run the trajectories
+    source $tcl_file_name
+  }
 
   ::comd::Logview [file join "$outputdir" "$output_prefix.log"]
 
   tk_messageBox -type ok -title "Setup Complete" \
     -message "Setup of $output_prefix is complete. See $output_prefix.log file."
-
-
 }
 
 proc comd_tk {} {
   ::comd::comdgui
-  #set ::druggability::which_mode [lindex $::druggability::titles [lsearch $::druggability::interfaces $::druggability::interface]]
-  #::druggability::Switch_mode $::druggability::interface
-  #return $::druggability::w
 }
-
-
-
-# proc drugui {args} {
-#   global errorInfo errorCode
-#   set oldcontext [psfcontext new]  ;# new context
-#   set errflag [catch { eval drugui_core $args } errMsg]
-#   set savedInfo $errorInfo
-#   set savedCode $errorCode
-#   psfcontext $oldcontext delete  ;# revert to old context
-#   if $errflag { error $errMsg $savedInfo $savedCode }
-# }
-
-

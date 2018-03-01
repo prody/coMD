@@ -820,11 +820,11 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \\\"\""
   }
   puts $tcl_file "file mkdir \"${output_prefix}_walker1_min\""
-  puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker1_min\" \"min.conf\"\] w\]"
+  puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker1_min\" \"min0.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/walker1_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ..\/walker1_ionized.psf\""
   puts $tcl_file "puts \$namd_file \"set temperature $temperature\""
-  puts $tcl_file "puts \$namd_file \"set outputname walker1_minimized\""
+  puts $tcl_file "puts \$namd_file \"set outputname walker1_minimized0\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
 
@@ -864,11 +864,11 @@ proc ::comd::Prepare_system {} {
    
   # Final structure minimization
   puts $tcl_file "file mkdir \"${output_prefix}_walker2_min\""
-  puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker2_min\" \"min.conf\"\] w\]"
+  puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker2_min\" \"min0.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/walker2_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ..\/walker2_ionized.psf\""
   puts $tcl_file "puts \$namd_file \"set temperature $temperature\""
-  puts $tcl_file "puts \$namd_file \"set outputname walker2_minimized\""
+  puts $tcl_file "puts \$namd_file \"set outputname walker2_minimized0\""
   puts $tcl_file "puts \$namd_file \"set firsttimestep 0\""
   puts $tcl_file "puts \$namd_file \"paraTypeCharmm  on\""
 
@@ -907,10 +907,10 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "close \$namd_file"
   
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_walker1_min\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min0.log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD min0.conf > min0.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\"" 
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_walker2_min\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min0.log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD min0.conf > min0.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\"" 
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
@@ -921,11 +921,11 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "package require psfgen"
   puts $tcl_file "mol delete all" 
   puts $tcl_file "mol load psf walker1_ionized.psf"
-  puts $tcl_file "mol addfile ${output_prefix}_walker1_min/walker1_minimized.coor" 
+  puts $tcl_file "mol addfile ${output_prefix}_walker1_min/walker1_minimized0.coor" 
   puts $tcl_file "set sel1 \[atomselect top \"name CA\"\]" 
   puts $tcl_file "set sel1a \[atomselect top all\]"
   puts $tcl_file "mol load psf walker2_ionized.psf"
-  puts $tcl_file "mol addfile ${output_prefix}_walker2_min/walker2_minimized.coor"  
+  puts $tcl_file "mol addfile ${output_prefix}_walker2_min/walker2_minimized0.coor"  
   puts $tcl_file "set sel2 \[atomselect top \"name CA\"\]" 
   puts $tcl_file "set sel2a \[atomselect top all\]"
   puts $tcl_file "set trans_mat \[measure fit \$sel2 \$sel1\]"
@@ -938,7 +938,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "file mkdir ${output_prefix}_walker2_pro"
 
   #loop start
-  puts $tcl_file "for {set cycle 0} {\$cycle < ${comd_cycle}} {incr cycle} {"
+  puts $tcl_file "for {set cycle 1} {\$cycle < ${comd_cycle}} {incr cycle} {"
   puts $tcl_file "mol delete all"
   puts $tcl_file "resetpsf"
   puts $tcl_file "mol load psf walker1_ionized.psf"
@@ -1163,7 +1163,7 @@ proc ::comd::Prepare_system {} {
   } else {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr ${num_cores}/2] \\\"\""
   }
-  puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker1_min\" \"min.conf\"\] w\]"
+  puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker1_min\" \"min0.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ../walker1_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ../walker1_ionized.psf\""
   puts $tcl_file "puts \$namd_file \"set temperature $temperature\""
@@ -1209,10 +1209,10 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_walker1_min\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD min0.conf > min\[expr \$\{cycle\}+1\].log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\""
 
-  puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker2_min\" \"min.conf\"\] w\]"
+  puts $tcl_file "set namd_file \[open \[file join \"${output_prefix}_walker2_min\" \"min0.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ../walker2_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ../walker2_ionized.psf\""
   puts $tcl_file "puts \$namd_file \"set temperature $temperature\""
@@ -1258,7 +1258,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${output_prefix}_walker2_min\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD min\[expr \$\{cycle\}+1\].conf > min\[expr \$\{cycle\}+1\].log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\""
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"

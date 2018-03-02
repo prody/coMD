@@ -50,8 +50,6 @@ else:
     ensemble_dcd_name = 'cycle_{0}_'.format(int(comd_cycle_number)) + \
                          initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd'
 
-log_file = open('cycle_{0}_'.format(int(comd_cycle_number)) + initial_pdb_id + '_anmmc_log.txt','w')
-
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
 
@@ -62,7 +60,7 @@ stepcutoff = 0.5 * (len(initial_pdb_ca) ** 0.5)
 # ANM calculation based on current
 pdb_anm = ANM('pdb ca')
 pdb_anm.buildHessian(initial_pdb_ca, cutoff=anm_cut)
-pdb_anm.calcModes(n_modes='all')
+pdb_anm.calcModes()
 
 # Cumulative sum vector preparation for metropolis sampling
 eigs = 1/sqrt(pdb_anm.getEigvals())
@@ -124,7 +122,7 @@ ensemble_final.setCoords(initial_pdb_ca)
 step_count = 0
 check_step_counts = [0]
 
-log_file.write('coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
+sys.stdout.write('coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
 
 # MC Loop 
 for k in range(N):
@@ -179,7 +177,7 @@ for k in range(N):
         step_count += 1
 
     coord_diff = pdb_ca.getCoords() - initial_pdb_ca.getCoords()
-    log_file.write('{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
+    sys.stdout.write('{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
              '{:8.7f}'.format(rand) + ' ' + '{:8d}'.format(ID) + ' ' + '{:8d}'.format(k+1) + ' ' + '{:11d}'.format(step_count) + '\n')
 
     if linalg.norm(coord_diff.ravel()) > stepcutoff: 
@@ -193,4 +191,3 @@ writeDCD(final_structure_dcd_name, ensemble_final)
 writeDCD(ensemble_dcd_name, ensemble)
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
 savetxt(initial_pdb_id + '_ratio.dat', ratios)
-log_file.close()

@@ -92,6 +92,7 @@ namespace eval ::comd:: {
   variable output_prefix
   variable from_commandline
   variable run_now
+  variable start_dir
   
   # Logvew window counter
   variable logcount 0
@@ -811,7 +812,7 @@ proc ::comd::Prepare_system {} {
   set tcl_file_name [file join "$::comd::outputdir" "$::comd::output_prefix.tcl"]
   set tcl_file [open $tcl_file_name w] 
   puts $tcl_file "#This tcl file will run full collective molecular dynamics simulation with given parameters."
-
+  puts $tcl_file "cd $::comd::outputdir"
   puts $tcl_file "set sh_file \[open \"$::comd::output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${::comd::output_prefix}.sh\""
   puts $tcl_file "package require exectool"
@@ -941,11 +942,11 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "package require psfgen"
     puts $tcl_file "mol delete all" 
     puts $tcl_file "mol load psf walker1_ionized.psf"
-    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized.coor" 
+    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized0.coor" 
     puts $tcl_file "set sel1 \[atomselect top \"name CA\"\]" 
     puts $tcl_file "set sel1a \[atomselect top all\]"
     puts $tcl_file "mol load psf walker2_ionized.psf"
-    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized.coor"  
+    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized0.coor"  
     puts $tcl_file "set sel2 \[atomselect top \"name CA\"\]" 
     puts $tcl_file "set sel2a \[atomselect top all\]"
     puts $tcl_file "set trans_mat \[measure fit \$sel2 \$sel1\]"
@@ -1399,7 +1400,7 @@ proc ::comd::Prepare_system {} {
 
   if {$::comd::run_now} {
     puts "Now running"
-    cd $::comd::outputdir
+    cd $::comd::start_dir
     source $tcl_file_name
     puts "Finished"
   }
@@ -1419,53 +1420,52 @@ if { $argc < 3 } {
 
   # Take parameter values from input arguments as far as possible
   for {set index 0} {$index < $argc -1} {incr index} {
-    if {$index eq 0} {set ::comd::walker1_pdb [lindex $argv $index]}
-    if {$index eq 1} {set ::comd::walker2_pdb [lindex $argv $index]}
-    if {$index eq 2} {set ::comd::walker1_chid [lindex $argv $index]}
-    if {$index eq 3} {set ::comd::walker2_chid [lindex $argv $index]}
-    if {$index eq 4} {set ::comd::solvent_padding_x [lindex $argv $index]}
-    if {$index eq 5} {set ::comd::solvent_padding_y [lindex $argv $index]}
-    if {$index eq 6} {set ::comd::solvent_padding_z [lindex $argv $index]}
-    if {$index eq 7} {set ::comd::topo_file [lindex $argv $index]}
-    if {$index eq 8} {set ::comd::temperature [lindex $argv $index]}
-    if {$index eq 9} {set ::comd::min_length [lindex $argv $index]}
-    if {$index eq 10} {set ::comd::para_file [list [lindex $argv $index]]}
-    if {$index eq 11} {set ::comd::anm_cutoff [lindex $argv $index]}
-    if {$index eq 12} {set ::comd::dev_mag [lindex $argv $index]}
-    if {$index eq 13} {set ::comd::accept_para [lindex $argv $index]}
-    if {$index eq 14} {set ::comd::max_steps [lindex $argv $index]}
-    if {$index eq 15} {set ::comd::spring_k [lindex $argv $index]}
-    if {$index eq 16} {set ::comd::tmd_len [lindex $argv $index]}
-    if {$index eq 17} {set ::comd::comd_cycle [lindex $argv $index]}
-    if {$index eq 18} {set ::comd::gpus_selected [lindex $argv $index]}
-    if {$index eq 19} {set ::comd::num_cores [lindex $argv $index]}
-    if {$index eq 20} {set ::comd::outputdir [lindex $argv $index]}
-    if {$index eq 21} {set ::comd::output_prefix [lindex $argv $index]}
+    if {$index eq 0} {set ::comd::outputdir [lindex $argv $index]}
+    if {$index eq 1} {set ::comd::output_prefix [lindex $argv $index]}
+    if {$index eq 2} {set ::comd::walker1_pdb [lindex $argv $index]}
+    if {$index eq 3} {set ::comd::walker2_pdb [lindex $argv $index]}
+    if {$index eq 4} {set ::comd::walker1_chid [lindex $argv $index]}
+    if {$index eq 5} {set ::comd::walker2_chid [lindex $argv $index]}
+    if {$index eq 6} {set ::comd::solvent_padding_x [lindex $argv $index]}
+    if {$index eq 7} {set ::comd::solvent_padding_y [lindex $argv $index]}
+    if {$index eq 8} {set ::comd::solvent_padding_z [lindex $argv $index]}
+    if {$index eq 9} {set ::comd::topo_file [lindex $argv $index]}
+    if {$index eq 10} {set ::comd::temperature [lindex $argv $index]}
+    if {$index eq 11} {set ::comd::min_length [lindex $argv $index]}
+    if {$index eq 12} {set ::comd::para_file [list [lindex $argv $index]]}
+    if {$index eq 13} {set ::comd::anm_cutoff [lindex $argv $index]}
+    if {$index eq 14} {set ::comd::dev_mag [lindex $argv $index]}
+    if {$index eq 15} {set ::comd::accept_para [lindex $argv $index]}
+    if {$index eq 16} {set ::comd::max_steps [lindex $argv $index]}
+    if {$index eq 17} {set ::comd::spring_k [lindex $argv $index]}
+    if {$index eq 18} {set ::comd::tmd_len [lindex $argv $index]}
+    if {$index eq 19} {set ::comd::comd_cycle [lindex $argv $index]}
+    if {$index eq 20} {set ::comd::gpus_selected [lindex $argv $index]}
+    if {$index eq 21} {set ::comd::num_cores [lindex $argv $index]}
     if {$index eq 22} {set ::comd::run_now [lindex $argv $index]}
   }
 
   # Fill in the remaining values with defaults
   for {set index $index} {$index < $num_args} {incr index} {
-    if {$index eq 4} {set ::comd::solvent_padding_x 10}
-    if {$index eq 5} {set ::comd::solvent_padding_y 10}
-    if {$index eq 6} {set ::comd::solvent_padding_z 10}
-    if {$index eq 7} {set ::comd::topo_file [list]}
-    if {$index eq 8} {set ::comd::temperature 298}
-    if {$index eq 9} {set ::comd::min_length 1}
-    if {$index eq 10} {set ::comd::para_file [list]}
-    if {$index eq 11} {set ::comd::anm_cutoff ""}
-    if {$index eq 12} {set ::comd::dev_mag ""}
-    if {$index eq 13} {set ::comd::accept_para ""}
-    if {$index eq 14} {set ::comd::max_steps ""}
-    if {$index eq 15} {set ::comd::spring_k 20000}
-    if {$index eq 16} {set ::comd::tmd_len 10}
-    if {$index eq 17} {set ::comd::comd_cycle 30}
-    if {$index eq 20} {set ::comd::outputdir [file join [pwd] "test8"]}
-    if {$index eq 21} {set ::comd::output_prefix "test8"}
+    if {$index eq 6} {set ::comd::solvent_padding_x 10}
+    if {$index eq 7} {set ::comd::solvent_padding_y 10}
+    if {$index eq 8} {set ::comd::solvent_padding_z 10}
+    if {$index eq 9} {set ::comd::topo_file [list]}
+    if {$index eq 10} {set ::comd::temperature 298}
+    if {$index eq 11} {set ::comd::min_length 1}
+    if {$index eq 12} {set ::comd::para_file [list]}
+    if {$index eq 13} {set ::comd::anm_cutoff ""}
+    if {$index eq 14} {set ::comd::dev_mag ""}
+    if {$index eq 15} {set ::comd::accept_para ""}
+    if {$index eq 16} {set ::comd::max_steps ""}
+    if {$index eq 17} {set ::comd::spring_k 20000}
+    if {$index eq 18} {set ::comd::tmd_len 10}
+    if {$index eq 19} {set ::comd::comd_cycle 2}
     if {$index eq 22} {set ::comd::run_now 1}
     if {$index eq 23} {set ::comd::from_commandline 1}
   }
 
+  set ::comd::start_dir [pwd]
   ::comd::Prepare_system
 
   exit

@@ -10,6 +10,8 @@ for arg in sys.argv:
 
 initial_pdbn=ar[1]
 final_pdbn=ar[2]
+initial_pdb_id = initial_pdbn[initial_pdbn.rfind('.')]
+final_pdb_id = final_pdbn[final_pdbn.rfind('.')]
 
 original_initial_pdb = ar[3]
 original_final_pdb = ar[4]
@@ -48,11 +50,6 @@ else:
     ensemble_dcd_name = 'cycle_{0}_'.format(int(comd_cycle_number)) + \
                          initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd'
 
-initial_pdb_id = initial_pdbn[initial_pdbn.rfind('.')]
-final_pdb_id = final_pdbn[final_pdbn.rfind('.')]
-
-#log_file = open('cycle_{0}_'.format(int(comd_cycle_number)) + initial_pdb_id + '_anmmc_log.txt','w')
-
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
 
@@ -63,7 +60,7 @@ stepcutoff = 0.5 * (len(initial_pdb_ca) ** 0.5)
 # ANM calculation based on current
 pdb_anm = ANM('pdb ca')
 pdb_anm.buildHessian(initial_pdb_ca, cutoff=anm_cut)
-pdb_anm.calcModes(n_modes='all')
+pdb_anm.calcModes()
 
 # Cumulative sum vector preparation for metropolis sampling
 eigs = 1/sqrt(pdb_anm.getEigvals())
@@ -194,4 +191,3 @@ writeDCD(final_structure_dcd_name, ensemble_final)
 writeDCD(ensemble_dcd_name, ensemble)
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
 savetxt(initial_pdb_id + '_ratio.dat', ratios)
-#log_file.close()

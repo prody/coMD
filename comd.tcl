@@ -1398,8 +1398,10 @@ proc ::comd::Prepare_system {} {
   }
 
   if {$::comd::run_now} {
+    puts "Now running"
     cd $::comd::outputdir
     source $tcl_file_name
+    puts "Finished"
   }
 
 }

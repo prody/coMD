@@ -1398,8 +1398,10 @@ proc ::comd::Prepare_system {} {
   }
 
   if {$::comd::run_now} {
+    puts "Now running"
     cd $::comd::outputdir
     source $tcl_file_name
+    puts "Finished"
   }
 
 }
@@ -1449,7 +1451,7 @@ if { $argc < 3 } {
     if {$index eq 6} {set ::comd::solvent_padding_z 10}
     if {$index eq 7} {set ::comd::topo_file [list]}
     if {$index eq 8} {set ::comd::temperature 298}
-    if {$index eq 9} {set ::comd::min_length 500}
+    if {$index eq 9} {set ::comd::min_length 1}
     if {$index eq 10} {set ::comd::para_file [list]}
     if {$index eq 11} {set ::comd::anm_cutoff ""}
     if {$index eq 12} {set ::comd::dev_mag ""}

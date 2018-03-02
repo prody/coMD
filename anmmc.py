@@ -10,6 +10,8 @@ for arg in sys.argv:
 
 initial_pdbn=ar[1]
 final_pdbn=ar[2]
+initial_pdb_id = initial_pdbn[initial_pdbn.rfind('.')]
+final_pdb_id = final_pdbn[final_pdbn.rfind('.')]
 
 original_initial_pdb = ar[3]
 original_final_pdb = ar[4]
@@ -48,10 +50,7 @@ else:
     ensemble_dcd_name = 'cycle_{0}_'.format(int(comd_cycle_number)) + \
                          initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd'
 
-initial_pdb_id = initial_pdbn[initial_pdbn.rfind('.')]
-final_pdb_id = final_pdbn[final_pdbn.rfind('.')]
-
-#log_file = open('cycle_{0}_'.format(int(comd_cycle_number)) + initial_pdb_id + '_anmmc_log.txt','w')
+log_file = open('cycle_{0}_'.format(int(comd_cycle_number)) + initial_pdb_id + '_anmmc_log.txt','w')
 
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
@@ -125,7 +124,7 @@ ensemble_final.setCoords(initial_pdb_ca)
 step_count = 0
 check_step_counts = [0]
 
-sys.stdout.write('coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
+log_file.write('coord diff' + ' '*(16-len('coord_diff')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
 
 # MC Loop 
 for k in range(N):
@@ -180,7 +179,7 @@ for k in range(N):
         step_count += 1
 
     coord_diff = pdb_ca.getCoords() - initial_pdb_ca.getCoords()
-    sys.stdout.write('{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
+    log_file.write('{:15.8f}'.format(linalg.norm(coord_diff.ravel())) + ' ' + \
              '{:8.7f}'.format(rand) + ' ' + '{:8d}'.format(ID) + ' ' + '{:8d}'.format(k+1) + ' ' + '{:11d}'.format(step_count) + '\n')
 
     if linalg.norm(coord_diff.ravel()) > stepcutoff: 
@@ -194,4 +193,4 @@ writeDCD(final_structure_dcd_name, ensemble_final)
 writeDCD(ensemble_dcd_name, ensemble)
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
 savetxt(initial_pdb_id + '_ratio.dat', ratios)
-#log_file.close()
+log_file.close()

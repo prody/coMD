@@ -36,7 +36,6 @@ package require exectool
 set COMD_PATH $env(COMD_PATH)
 set PACKAGE_PATH "$COMD_PATH"
 set PACKAGEPATH "$COMD_PATH"
-set env(PROBEDIR) "$COMD_PATH"
 
 variable platform $tcl_platform(platform)
 switch $platform {
@@ -1411,6 +1410,35 @@ proc comd_tk {} {
   ::comd::comdgui
 }
 
+proc numberOfCPUs {} {
+    # Windows puts it in an environment variable
+    global tcl_platform env
+    if {$tcl_platform(platform) eq "windows"} {
+        return $env(NUMBER_OF_PROCESSORS)
+    }
+
+    # Check for sysctl (OSX, BSD)
+    set sysctl [auto_execok "sysctl"]
+    if {[llength $sysctl]} {
+        if {![catch {exec $sysctl -n "hw.ncpu"} cores]} {
+            return $cores
+        }
+    }
+
+    # Assume Linux, which has /proc/cpuinfo, but be careful
+    if {![catch {open "/proc/cpuinfo"} f]} {
+        set cores [regexp -all -line {^processor\s} [read $f]]
+        close $f
+        if {$cores > 0} {
+            return $cores
+        }
+    }
+
+    # No idea what the actual number of cores is; exhausted all our options
+    # Fall back to returning 1; there must be at least that because we're running on it!
+    return 1
+}
+
 if { $argc < 3 } {
   puts "comd.tcl requires at least two arguments: filenames for the starting PDBs."
   puts "Please provide the same filename twice to calculate a random walk "
@@ -1461,6 +1489,7 @@ if { $argc < 3 } {
     if {$index eq 17} {set ::comd::spring_k 20000}
     if {$index eq 18} {set ::comd::tmd_len 10}
     if {$index eq 19} {set ::comd::comd_cycle 2}
+    if {$index eq 21} {set ::comd::num_cores [numberOfCPUs]}
     if {$index eq 22} {set ::comd::run_now 1}
     if {$index eq 23} {set ::comd::from_commandline 1}
   }

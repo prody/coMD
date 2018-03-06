@@ -769,8 +769,10 @@ proc ::comd::Prepare_system {} {
   }
   
   ####### INITIAL MINIMIZATION OF STARTING PROTEIN STRUCTURES #######
- 
-  puts $log_file "Simulation: NAMD configuration files for minimization written in ${::comd::output_prefix}_walker1_min and ${::comd::output_prefix}_walker2_min."
+  puts $log_file "Simulation: NAMD configuration files for minimization written in ${::comd::output_prefix}_walker1_min"
+  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
+    puts $log_file "and ${::comd::output_prefix}_walker2_min."
+  }
   close $log_file
 
   if {$::comd::para_file == [list]} {
@@ -1424,20 +1426,14 @@ if { $argc < 3 } {
       if {$index eq  4} {
         set ::comd::comd_cycle [lindex $argv $index]
 	set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
-	#puts "comd_cycle is:"
-	#puts $::comd::comd_cycle
       }
       if {$index eq  5} {
         set ::comd::dev_mag [lindex $argv $index]
         set ::comd::dev_mag [expr $::comd::dev_mag]
-        puts "dev_mag is:"
-        puts $::comd::dev_mag
       }
       if {$index eq  6} {
         set ::comd::step_cutoff [lindex $argv $index]
         set ::comd::step_cutoff [expr $::comd::step_cutoff]
-        puts "step_cutoff is:"
-        puts $::comd::step_cutoff
       }
       if {$index eq  7} {set ::comd::walker1_chid [lindex $argv $index]}
       if {$index eq  8} {set ::comd::walker2_chid [lindex $argv $index]}

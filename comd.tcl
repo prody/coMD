@@ -1397,6 +1397,8 @@ proc ::comd::Prepare_system {} {
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} { 
     puts $tcl_file "set status \[catch \{exec mv fintr.dcd walker2_trajectory.dcd\} output\]" 
   }
+  #AJ
+  puts $tcl_file "exit"
   close $tcl_file
   file delete pro_formatted.pdb
   file delete pro_formatted_autopsf.pdb
@@ -1436,6 +1438,8 @@ if { $argc < 3 } {
   puts "rather than a transition."
 } else {
   set num_args 24
+  
+  catch {
 
   # Take parameter values from input arguments as far as possible
   for {set index 0} {$index < $argc -1} {incr index} {
@@ -1444,16 +1448,16 @@ if { $argc < 3 } {
     if {$index eq 2} {set ::comd::walker1_pdb [lindex $argv $index]}
     if {$index eq 3} {set ::comd::walker2_pdb [lindex $argv $index]}
     if {$index eq 4} {
-	set ::comd::comd_cycle [lindex $argv $index]
-	set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
-	puts "comd_cycle is:"
-	puts $::comd::comd_cycle
+	#set ::comd::comd_cycle [lindex $argv $index]
+	#set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
+	#puts "comd_cycle is:"
+	#puts $::comd::comd_cycle
     }
     if {$index eq 5} {
 	set ::comd::dev_mag [lindex $argv $index]
 	set ::comd::dev_mag [expr $::comd::dev_mag]
-	puts "dev_mag is:"
-	puts $::comd::dev_mag
+	#puts "dev_mag is:"
+	#puts $::comd::dev_mag
     }
     if {$index eq 6} {set ::comd::walker1_chid [lindex $argv $index]}
     if {$index eq 7} {set ::comd::walker2_chid [lindex $argv $index]}
@@ -1498,4 +1502,14 @@ if { $argc < 3 } {
   ::comd::Prepare_system
 
   exit
+
+  } result 
+  puts "ERROR: $result"
+  set error_file_name [file join "/home/ajimenez/ScipionUserData/projects/prody_test" $::comd::outputdir "finish.txt"]
+  set error_file [open $error_file_name w] 
+  puts $error_file "$result"
+  close $error_file
+
+
+
 }

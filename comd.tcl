@@ -603,8 +603,13 @@ proc ::comd::Prepare_system {} {
   if {$::comd::outputdir != ""} {
       if {![file isdirectory $::comd::outputdir]} {
         if {[catch {file mkdir $::comd::outputdir}]} {
-          tk_messageBox -type ok -title "ERROR" \
+          if {[info exists ::comd::from_commandline]} {
+            error "Could not make output folder: $::comd::outputdir"
+          } else {
+            tk_messageBox -type ok -title "ERROR" \
             -message "Could not make output folder: $::comd::outputdir"
+          }
+          
           return
 
         }

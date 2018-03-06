@@ -174,27 +174,6 @@ proc ::comd::comdgui {} {
   wm title $w "COllective Molecular Dynamics v$::comd::version"
   wm resizable $w 0 0
 
-#   set wif [frame $w.interface_frame]
-#   button $wif.help -text "?" -padx 0 -pady 3 -command {
-#       tk_messageBox -type ok -title "HELP" \
-#       -message "Use option menu to change the active interface. There are\
-# two interfaces to facilitate the COllective Molecular Dynamics.\n\n\
-# [lindex $::druggability::titles 0]\n\
-# Prepare protein in a water-probe mixture box or in a water-only box using\
-# this interface. Also, by default generic NAMD input files are outputed.\
-# Protein PSF and PDB files that also \
-# contains cofactors/ions etc. are required from the user.\n\n\
-# "}
-#   variable titles
-#   tk_optionMenu $wif.list ::comd::which_mode "System Setup"
-#   $wif.list.menu delete 0
-#   $wif.list.menu add radiobutton -label [lindex $titles 0] \
-#     -variable ::comd::which_mode \
-#     -command {::comd::Switch_mode "prepare"}
-#   pack $wif.help -side left
-#   pack $wif.list -side left -expand 1 -fill x
-#   pack $wif -pady 2 -expand 1 -fill x
-
   # Set main frame
   set mf [frame $w.main_frame]
 
@@ -410,14 +389,25 @@ based on topology parameters provided. Suggested file extension is .top but othe
 
   set mfamc [labelframe $mfa.anmmc_options -text "ANM-MC-Metropolis options:" -bd 2]
   
-  grid [button $mfamc.anmcut_help -text "?" -width 1 -padx 0 -pady 0 -command {
-      tk_messageBox -type ok -title "HELP" \
-        -message "In ANM calculations, the cutoff parameter is the maximum distance that two residues are in contact. The units are A. "}] \
+  #grid [button $mfamc.anmcut_help -text "?" -width 1 -padx 0 -pady 0 -command {
+  #    tk_messageBox -type ok -title "HELP" \
+  #      -message "In ANM calculations, the cutoff parameter is the maximum distance that two residues are in contact. The units are A. "}] \
+  #  -row 0 -column 0 -sticky w
+  #grid [label $mfamc.anmc_label -text "ANM cutoff (A):              " -width 21] \
+  #  -row 0 -column 1 -sticky w
+  #grid [entry $mfamc.anmc_field -width 17 \
+  #  -textvariable ::comd::anm_cutoff] \
+  #  -row 0 -column 2 -columnspan 3 -sticky w
+
+  grid [button $mfamc.stepcut_help -text "?" -padx 0 -pady 0 -command {
+    tk_messageBox -type ok -title "HELP" \
+      -message "To keep structure intact and to avoid having unrealistic \
+        and very different structures in ANM-MC step, an rmsd threshold is used. Suggested value is 4 A."}] \
     -row 0 -column 0 -sticky w
-  grid [label $mfamc.anmc_label -text "ANM cutoff (A):              " -width 21] \
+  grid [label $mfamc.stepc_label -text "Step cutoff (A): "] \
     -row 0 -column 1 -sticky w
-  grid [entry $mfamc.anmc_field -width 17 \
-    -textvariable ::comd::anm_cutoff] \
+  grid [entry $mfamc.stepc_field -width 17 \
+    -textvariable ::comd::step_cutoff] \
     -row 0 -column 2 -columnspan 3 -sticky w
 
   grid [label $mfamc.separatpr1_label -width 6] \
@@ -455,30 +445,6 @@ based on topology parameters provided. Suggested file extension is .top but othe
   grid [entry $mfamc.max_steps_field -width 17 \
       -textvariable ::comd::max_steps] \
     -row 1 -column 8 -columnspan 3 -sticky w
-
-  # grid [button $mfamc.stepcut_help -text "?" -padx 0 -pady 0 -command {
-  #     tk_messageBox -type ok -title "HELP" \
-  #       -message "To keep structure intact and to avoid having unrealistic \
-  #       and very different structures in ANM-MC step, an rmsd threshold is used. Suggested value is 4 A."}] \
-  #   -row 1 -column 0 -sticky w
-  # grid [label $mfamc.stepc_label -text "Step cutoff (A): "] \
-  #   -row 1 -column 1 -sticky w
-  # grid [entry $mfamc.stepc_field -width 6 -textvariable ::comd::step_cutoff] \
-  #   -row 1 -column 2 -sticky w
-
-  #   grid [label $mfamc.separatpr_label -text "      "] \
-  #   -row 1 -column 3 -sticky w
-
-  # grid [button $mfamc.num_cyc_help -text "?" -padx 0 -pady 0 -command {
-  #     tk_messageBox -type ok -title "HELP" \
-  #       -message "The number of disturbances on the structure based on ANM modes. \
-  #       The number of disturbances should be selected based on structure and for a structure with 200 residues suggested number is in order of thousands."}] \
-  #   -row 1 -column 4 -sticky w
-  # grid [label $mfamc.num_cyc_label -text "No of disturbances: "] \
-  #   -row 1 -column 5 -sticky w
-  # grid [entry $mfamc.num_cyc_field -width 6 \
-  #     -textvariable ::comd::anm_cycle] \
-  #   -row 1 -column 6 -sticky w  
 
   pack $mfamc -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
@@ -530,7 +496,7 @@ the spring constant term shows the force applied to a given structure to reach t
     tk_messageBox -type ok -title "HELP" \
       -message "If this is checked the simulations will run as soon as the system is prepared"}] \
     -row 0 -column 6 -sticky w
-  grid [label $mfaso.run_now_label -text "Add counter ions:              " -width 21] \
+  grid [label $mfaso.run_now_label -text "Run now:                       " -width 21] \
     -row 0 -column 7 -sticky w
   grid [label $mfaso.separatpr2_label -width 13] \
     -row 1 -column 8 -columnspan 2 -sticky w
@@ -968,8 +934,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "}"
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker2_min/walker2_minimized0.coor r} fid\]} {"
-  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.err\" w\]"
-  puts $tcl_file "puts \$err_file \"The original minimization of structure 1 failed. Please try again with a different structure 1.\""
+    puts $tcl_file "set err_file \[open \"$::comd::output_prefix.err\" w\]"
+    puts $tcl_file "puts \$err_file \"The original minimization of structure 1 failed. Please try again with a different structure 1.\""
     puts $tcl_file "exit"
     puts $tcl_file "}"
   }
@@ -1007,11 +973,11 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "mol delete all"
   
     puts $tcl_file "mol load psf walker2_ionized.psf"
-    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\$cycle.coor"
+    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}-1\].coor"
     puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
     puts $tcl_file "set s2 \[atomselect top \"all\"\]"
     puts $tcl_file "mol load psf walker1_ionized.psf"
-    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\$cycle.coor"
+    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}-1\].coor"
     puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
     puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
     puts $tcl_file "\$s2 move \$trans_mat"
@@ -1042,9 +1008,15 @@ proc ::comd::Prepare_system {} {
   if {[info exists ::comd::num_cores]} {
     puts $tcl_file "puts \$sh_file \"export MKL_NUM_THREADS=[expr $::comd::num_cores/2]\""
   }
-  puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker1.pdb walker1_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::anm_cutoff \$::comd::dev_mag \$::comd::accept_para \$::comd::max_steps \>& cycle_\${cycle}_ini_anmmc_log.txt \&\""
+  puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker1.pdb \
+    walker1_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::stepc \
+    \$::comd::dev_mag \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
+    \>& cycle_\${cycle}_ini_anmmc_log.txt \&\""
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker2.pdb walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::anm_cutoff \$::comd::dev_mag \$::comd::accept_para \$::comd::max_steps \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
+    puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker2.pdb \
+    walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::stepc \
+    \$::comd::dev_mag \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
+    \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
   }
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
@@ -1412,7 +1384,6 @@ proc ::comd::Prepare_system {} {
 
   if {[info exists ::comd::from_commandline] == 0} {
     ::comd::Logview [file join "$::comd::outputdir" "$::comd::output_prefix.log"]
-
     tk_messageBox -type ok -title "Setup Complete" \
       -message "Setup of $::comd::output_prefix is complete. See $::comd::output_prefix.log file."
   }
@@ -1435,7 +1406,7 @@ if { $argc < 3 } {
   puts "Please provide the same filename twice to calculate a random walk "
   puts "rather than a transition."
 } else {
-  set num_args 24
+  set num_args 25
 
   # Take parameter values from input arguments as far as possible
   for {set index 0} {$index < $argc -1} {incr index} {
@@ -1444,40 +1415,47 @@ if { $argc < 3 } {
     if {$index eq 2} {set ::comd::walker1_pdb [lindex $argv $index]}
     if {$index eq 3} {set ::comd::walker2_pdb [lindex $argv $index]}
     if {$index eq 4} {
-	set ::comd::comd_cycle [lindex $argv $index]
-	set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
-	puts "comd_cycle is:"
-	puts $::comd::comd_cycle
+      set ::comd::comd_cycle [lindex $argv $index]
+      set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
+      puts "comd_cycle is:"
+      puts $::comd::comd_cycle
     }
     if {$index eq 5} {
-	set ::comd::dev_mag [lindex $argv $index]
-	set ::comd::dev_mag [expr $::comd::dev_mag]
-	puts "dev_mag is:"
-	puts $::comd::dev_mag
+      set ::comd::dev_mag [lindex $argv $index]
+      set ::comd::dev_mag [expr $::comd::dev_mag]
+      puts "dev_mag is:"
+      puts $::comd::dev_mag
     }
-    if {$index eq 6} {set ::comd::walker1_chid [lindex $argv $index]}
-    if {$index eq 7} {set ::comd::walker2_chid [lindex $argv $index]}
-    if {$index eq 8} {set ::comd::solvent_padding_x [lindex $argv $index]}
-    if {$index eq 9} {set ::comd::solvent_padding_y [lindex $argv $index]}
-    if {$index eq 10} {set ::comd::solvent_padding_z [lindex $argv $index]}
-    if {$index eq 11} {set ::comd::topo_file [lindex $argv $index]}
-    if {$index eq 12} {set ::comd::temperature [lindex $argv $index]}
-    if {$index eq 13} {set ::comd::min_length [lindex $argv $index]}
-    if {$index eq 14} {set ::comd::para_file [list [lindex $argv $index]]}
-    if {$index eq 15} {set ::comd::anm_cutoff [lindex $argv $index]}
-    if {$index eq 16} {set ::comd::accept_para [lindex $argv $index]}
-    if {$index eq 17} {set ::comd::max_steps [lindex $argv $index]}
-    if {$index eq 18} {set ::comd::spring_k [lindex $argv $index]}
-    if {$index eq 19} {set ::comd::tmd_len [lindex $argv $index]}
-    if {$index eq 20} {set ::comd::gpus_selected [lindex $argv $index]}
-    if {$index eq 21} {set ::comd::num_cores [lindex $argv $index]}
-    if {$index eq 22} {set ::comd::run_now [lindex $argv $index]}
+    if {$index eq 6} {
+      set ::comd::stepc [lindex $argv $index]
+      set ::comd::stepc [expr $::comd::stepc]
+      puts "dev_mag is:"
+      puts $::comd::stepc
+    }
+    if {$index eq 7} {set ::comd::walker1_chid [lindex $argv $index]}
+    if {$index eq 8} {set ::comd::walker2_chid [lindex $argv $index]}
+    if {$index eq 9} {set ::comd::solvent_padding_x [lindex $argv $index]}
+    if {$index eq 10} {set ::comd::solvent_padding_y [lindex $argv $index]}
+    if {$index eq 11} {set ::comd::solvent_padding_z [lindex $argv $index]}
+    if {$index eq 12} {set ::comd::topo_file [lindex $argv $index]}
+    if {$index eq 13} {set ::comd::temperature [lindex $argv $index]}
+    if {$index eq 14} {set ::comd::min_length [lindex $argv $index]}
+    if {$index eq 15} {set ::comd::para_file [list [lindex $argv $index]]}
+    if {$index eq 16} {set ::comd::anm_cutoff [lindex $argv $index]}
+    if {$index eq 17} {set ::comd::accept_para [lindex $argv $index]}
+    if {$index eq 18} {set ::comd::max_steps [lindex $argv $index]}
+    if {$index eq 19} {set ::comd::spring_k [lindex $argv $index]}
+    if {$index eq 20} {set ::comd::tmd_len [lindex $argv $index]}
+    if {$index eq 21} {set ::comd::gpus_selected [lindex $argv $index]}
+    if {$index eq 22} {set ::comd::num_cores [lindex $argv $index]}
+    if {$index eq 23} {set ::comd::run_now [lindex $argv $index]}
   }
 
   # Fill in the remaining values with defaults
   for {set index $index} {$index < $num_args} {incr index} {
-    if {$index eq 4} {set ::comd::comd_cycle 1000}
+    if {$index eq 4} {set ::comd::comd_cycle 100}
     if {$index eq 5} {set ::comd::dev_mag 0}
+    if {$index eq 5} {set ::comd::stepc 0}
     if {$index eq 8} {set ::comd::solvent_padding_x 10}
     if {$index eq 9} {set ::comd::solvent_padding_y 10}
     if {$index eq 10} {set ::comd::solvent_padding_z 10}

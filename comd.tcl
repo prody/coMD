@@ -100,15 +100,13 @@ namespace eval ::comd:: {
   variable titles [list "Prepare System"]
   variable interfaces [list "prepare"]
   variable which_mode [lindex $titles 0]
-
-
 }
 
 
-proc comd::Logview {logfilename} {
+proc comd::Logview {log_file_name} {
   variable logcount
   variable lognames
-  set logindex [lsearch $lognames $logfilename]
+  set logindex [lsearch $lognames $log_file_name]
   set log .somenonsense
   if {$logindex > -1} {
     set windowname "log$logindex"
@@ -119,10 +117,10 @@ proc comd::Logview {logfilename} {
       lset lognames $logindex "somenonsense"
     }
     set logindex $logcount
-    lappend lognames $logfilename
+    lappend lognames $log_file_name
     set windowname "log$logindex"
     set log [toplevel ".$windowname"]
-    wm title $log "Logfile [lindex [file split $logfilename] end] ($logfilename)"
+    wm title $log "Logfile [lindex [file split $log_file_name] end] ($log_file_name)"
     wm resizable $log 1 1
     incr logcount
 
@@ -147,7 +145,7 @@ proc comd::Logview {logfilename} {
   #    }
   #}
   $log.text delete 1.0 end
-  set logfile [open $logfilename "r"]
+  set logfile [open $log_file_name "r"]
   set line ""
   while {[gets $logfile line] != -1} {
     $log.text insert end "$line\n"
@@ -643,7 +641,7 @@ proc ::comd::Prepare_system {} {
   global env
   global COMD_PATH
 
-  set log_file [open [file join "$::comd::outputdir" "$::comd::output_prefix.log"] a]
+  set log_file [open [file join "$::comd::outputdir" "$::comd::output_prefix.log"] w]
   puts $log_file "---==## [clock format [clock seconds]] #==---"
   puts $log_file "Version: $::comd::version"
   puts $log_file "Info: Logging started for setup of $::comd::output_prefix."
@@ -784,8 +782,8 @@ proc ::comd::Prepare_system {} {
   set tcl_file [open $tcl_file_name w] 
   puts $tcl_file "#This tcl file will run full collective molecular dynamics simulation with given parameters."
   puts $tcl_file "cd $::comd::outputdir"
-  puts $tcl_file "set sh_file \[open \"$::comd::output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${::comd::output_prefix}.sh\""
+  puts $tcl_file "set sh_file \[open \$sh_filename w\]"
   puts $tcl_file "package require exectool"
   puts $tcl_file "set namd2path \[::ExecTool::find \"namd2\"\]"
   if {$::comd::python_path == ""} {
@@ -1374,6 +1372,8 @@ proc ::comd::Prepare_system {} {
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} { 
     puts $tcl_file "set status \[catch \{exec mv fintr.dcd walker2_trajectory.dcd\} output\]" 
   }
+  #AJ
+  puts $tcl_file "exit"
   close $tcl_file
   file delete pro_formatted.pdb
   file delete pro_formatted_autopsf.pdb
@@ -1411,74 +1411,87 @@ if { $argc < 3 } {
   puts "Please provide the same filename twice to calculate a random walk "
   puts "rather than a transition."
 } else {
-  set num_args 25
 
-  # Take parameter values from input arguments as far as possible
-  for {set index 0} {$index < $argc -1} {incr index} {
-    if {$index eq 0} {set ::comd::outputdir [lindex $argv $index]}
-    if {$index eq 1} {set ::comd::output_prefix [lindex $argv $index]}
-    if {$index eq 2} {set ::comd::walker1_pdb [lindex $argv $index]}
-    if {$index eq 3} {set ::comd::walker2_pdb [lindex $argv $index]}
-    if {$index eq 4} {
-      set ::comd::comd_cycle [lindex $argv $index]
-      puts "comd_cycle is:"
-      puts $::comd::comd_cycle
-      set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
+  if {[catch {
+    set num_args 25
+
+    # Take parameter values from input arguments as far as possible
+    for {set index 0} {$index < $argc -1} {incr index} {
+      if {$index eq  0} {set ::comd::outputdir [lindex $argv $index]}
+      if {$index eq  1} {set ::comd::output_prefix [lindex $argv $index]}
+      if {$index eq  2} {set ::comd::walker1_pdb [lindex $argv $index]}
+      if {$index eq  3} {set ::comd::walker2_pdb [lindex $argv $index]}
+      if {$index eq  4} {
+        set ::comd::comd_cycle [lindex $argv $index]
+	set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
+	#puts "comd_cycle is:"
+	#puts $::comd::comd_cycle
+      }
+      if {$index eq  5} {
+        set ::comd::dev_mag [lindex $argv $index]
+        set ::comd::dev_mag [expr $::comd::dev_mag]
+        puts "dev_mag is:"
+        puts $::comd::dev_mag
+      }
+      if {$index eq  6} {
+        set ::comd::step_cutoff [lindex $argv $index]
+        set ::comd::step_cutoff [expr $::comd::step_cutoff]
+        puts "step_cutoff is:"
+        puts $::comd::step_cutoff
+      }
+      if {$index eq  7} {set ::comd::walker1_chid [lindex $argv $index]}
+      if {$index eq  8} {set ::comd::walker2_chid [lindex $argv $index]}
+      if {$index eq  9} {set ::comd::solvent_padding_x [lindex $argv $index]}
+      if {$index eq 10} {set ::comd::solvent_padding_y [lindex $argv $index]}
+      if {$index eq 11} {set ::comd::solvent_padding_z [lindex $argv $index]}
+      if {$index eq 12} {set ::comd::topo_file [lindex $argv $index]}
+      if {$index eq 13} {set ::comd::temperature [lindex $argv $index]}
+      if {$index eq 14} {set ::comd::min_length [lindex $argv $index]}
+      if {$index eq 15} {set ::comd::para_file [list [lindex $argv $index]]}
+      if {$index eq 16} {set ::comd::anm_cutoff [lindex $argv $index]}
+      if {$index eq 17} {set ::comd::accept_para [lindex $argv $index]}
+      if {$index eq 18} {set ::comd::max_steps [lindex $argv $index]}
+      if {$index eq 19} {set ::comd::spring_k [lindex $argv $index]}
+      if {$index eq 20} {set ::comd::tmd_len [lindex $argv $index]}
+      if {$index eq 21} {set ::comd::gpus_selected [lindex $argv $index]}
+      if {$index eq 22} {set ::comd::num_cores [lindex $argv $index]}
+      if {$index eq 23} {set ::comd::run_now [lindex $argv $index]}
     }
-    if {$index eq 5} {
-      set ::comd::dev_mag [lindex $argv $index]
-      set ::comd::dev_mag [expr $::comd::dev_mag]
-      puts "dev_mag is:"
-      puts $::comd::dev_mag
+
+    # Fill in the remaining values with defaults
+    for {set index $index} {$index < $num_args} {incr index} {
+      if {$index eq  4} {set ::comd::comd_cycle 100}
+      if {$index eq  5} {set ::comd::dev_mag 0}
+      if {$index eq  6} {set ::comd::step_cutoff 0}
+      if {$index eq  9} {set ::comd::solvent_padding_x 10}
+      if {$index eq 10} {set ::comd::solvent_padding_y 10}
+      if {$index eq 11} {set ::comd::solvent_padding_z 10}
+      if {$index eq 12} {set ::comd::topo_file [list]}
+      if {$index eq 13} {set ::comd::temperature 298}
+      if {$index eq 14} {set ::comd::min_length 1}
+      if {$index eq 15} {set ::comd::para_file [list]}
+      if {$index eq 16} {set ::comd::anm_cutoff ""}
+      if {$index eq 17} {set ::comd::accept_para ""}
+      if {$index eq 18} {set ::comd::max_steps ""}
+      if {$index eq 19} {set ::comd::spring_k 20000}
+      if {$index eq 20} {set ::comd::tmd_len 10}
+      if {$index eq 23} {set ::comd::run_now 1}
+      if {$index eq 24} {set ::comd::from_commandline 1}
     }
-    if {$index eq 6} {
-      set ::comd::step_cutoff [lindex $argv $index]
-      set ::comd::step_cutoff [expr $::comd::step_cutoff]
-      puts "step_cutoff is:"
-      puts $::comd::step_cutoff
-    }
-    if {$index eq 7} {set ::comd::walker1_chid [lindex $argv $index]}
-    if {$index eq 8} {set ::comd::walker2_chid [lindex $argv $index]}
-    if {$index eq 9} {set ::comd::solvent_padding_x [lindex $argv $index]}
-    if {$index eq 10} {set ::comd::solvent_padding_y [lindex $argv $index]}
-    if {$index eq 11} {set ::comd::solvent_padding_z [lindex $argv $index]}
-    if {$index eq 12} {set ::comd::topo_file [lindex $argv $index]}
-    if {$index eq 13} {set ::comd::temperature [lindex $argv $index]}
-    if {$index eq 14} {set ::comd::min_length [lindex $argv $index]}
-    if {$index eq 15} {set ::comd::para_file [list [lindex $argv $index]]}
-    if {$index eq 16} {set ::comd::anm_cutoff [lindex $argv $index]}
-    if {$index eq 17} {set ::comd::accept_para [lindex $argv $index]}
-    if {$index eq 18} {set ::comd::max_steps [lindex $argv $index]}
-    if {$index eq 19} {set ::comd::spring_k [lindex $argv $index]}
-    if {$index eq 20} {set ::comd::tmd_len [lindex $argv $index]}
-    if {$index eq 21} {set ::comd::gpus_selected [lindex $argv $index]}
-    if {$index eq 22} {set ::comd::num_cores [lindex $argv $index]}
-    if {$index eq 23} {set ::comd::run_now [lindex $argv $index]}
+    set ::comd::start_dir [pwd]
+    ::comd::Prepare_system
+
+    exit
+
+  } result ]} {
+    puts "coMD simulation FINISHED successfully"
+    set log_file [open [file join "$::comd::outputdir" "$::comd::output_prefix.log"] a]
+    puts $log_file "coMD simulation FINISHED successfully"
+    close $log_file
+  } else {
+    puts "$result"
+    set log_file [open [file join "$::comd::outputdir" "$::comd::output_prefix.log"] a] 
+    puts $log_file "ERROR: $result"
+    close $log_file
   }
-
-  # Fill in the remaining values with defaults
-  for {set index $index} {$index < $num_args} {incr index} {
-    if {$index eq 4} {set ::comd::comd_cycle 100}
-    if {$index eq 5} {set ::comd::dev_mag 0}
-    if {$index eq 6} {set ::comd::step_cutoff 0}
-    if {$index eq 9} {set ::comd::solvent_padding_x 10}
-    if {$index eq 10} {set ::comd::solvent_padding_y 10}
-    if {$index eq 11} {set ::comd::solvent_padding_z 10}
-    if {$index eq 12} {set ::comd::topo_file [list]}
-    if {$index eq 13} {set ::comd::temperature 298}
-    if {$index eq 14} {set ::comd::min_length 1}
-    if {$index eq 15} {set ::comd::para_file [list]}
-    if {$index eq 16} {set ::comd::anm_cutoff ""}
-    if {$index eq 17} {set ::comd::accept_para ""}
-    if {$index eq 18} {set ::comd::max_steps ""}
-    if {$index eq 19} {set ::comd::spring_k 20000}
-    if {$index eq 20} {set ::comd::tmd_len 10}
-    if {$index eq 23} {set ::comd::run_now 1}
-    if {$index eq 24} {set ::comd::from_commandline 1}
-  }
-  puts $::comd::from_commandline
-  set ::comd::start_dir [pwd]
-  ::comd::Prepare_system
-
-  exit
 }

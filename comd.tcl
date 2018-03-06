@@ -1363,7 +1363,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "set rmsd \[measure rmsd \$sel2 \$sel1\]"
     puts $tcl_file "set all_rmsd(\$\{cycle\}) \$rmsd"
     puts $tcl_file "puts \$rmsd"
-    puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\[expr \$\{cycle\-1\}\]\) - \$rmsd]\ < 0.15 \)\} \{ break \}"
+    puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\[expr \$\{cycle\}\-1\]\) - \$rmsd]\ < 0.15 \)\} \{ break \}"
   }
 
   # end loop

@@ -123,7 +123,7 @@ step_count = 0
 check_step_counts = [0]
 
 sys.stdout.write(' '*2 + 'rmsd' + ' '*2 + 'rand' + ' '*2 + 'ID' + ' '*3 + 'step' \
-                 + ' '*2 + 'accept_para' + '\n')
+                 + ' '*2 + 'accept_para' +  ' '*5 + 'f' + '\n')
 
 # MC Loop 
 for k in range(N):
@@ -162,13 +162,18 @@ for k in range(N):
             count1 += 1
             accepted = 0
 
+        if count1 == 0:
+            f = 1.
+        else:
+            f = float(count2)/float(count1)
+
         if (mod(k,25)==0 and not(k==0)):
             # Update of the accept_para to keep the MC para reasonable
             # See comment lines 82 to 85. 
-            if count2/count1 > 0.95:
-                accept_para*=1.5;
-            elif count2/count1 < 0.85:
-                accept_para/=1.5
+            if f > 0.95:
+                accept_para *= 1.5;
+            elif f < 0.85:
+                accept_para /= 1.5
 
     else:
         # for exploration based on one structure (two runs)
@@ -179,7 +184,7 @@ for k in range(N):
     rmsd = calcRMSD(pdb_ca.getCoords(), initial_pdb_ca.getCoords())
     sys.stdout.write('{:6.2f}'.format(rmsd) + ' ' + '{:5.2f}'.format(rand) + \
                      '{:4d}'.format(ID) + '{:7d}'.format(k) + ' '*2 + str(accepted) + ' '*2 + \
-                     '{:5.4f}'.format(accept_para) + '\n')
+                     '{:5.4f}'.format(accept_para) + ' '*2 + '{:5.4f}'.format(f) + '\n')
 
     if rmsd > stepcutoff:
         break
@@ -192,4 +197,4 @@ ensemble_final.addCoordset(pdb_ca.getCoords())
 writeDCD(final_structure_dcd_name, ensemble_final)
 
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
-savetxt(initial_pdb_id + '_ratio.dat', ratios)
+savetxt(initial_pdb_id + '_ratio.dat', ratios, fmt='%.2e')

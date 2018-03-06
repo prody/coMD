@@ -795,13 +795,13 @@ proc ::comd::Prepare_system {} {
   }
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
   if {[info exists ::comd::gpu_selected] && [info exists ::comd::num_cores]} { 
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr $::comd::num_cores/2] \+devices $::comd::gpus_selected\\\"\"" 
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \+p[expr $::comd::num_cores/2] \+devices $::comd::gpus_selected\\\"\"" 
   } elseif {[info exists ::comd::gpu_selected]} {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+devices $::comd::gpus_selected\\\"\""
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \+devices $::comd::gpus_selected\\\"\""
   } elseif {[info exists ::comd:num_cores]} {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr $::comd::num_cores/2] \\\"\""
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \+p[expr $::comd::num_cores/2] \\\"\""
   } else {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
+    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \\\"\""
   }
 
   # Walker 1 minimization
@@ -1363,7 +1363,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "set rmsd \[measure rmsd \$sel2 \$sel1\]"
     puts $tcl_file "set all_rmsd(\$\{cycle\}) \$rmsd"
     puts $tcl_file "puts \$rmsd"
-    puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\[expr \$\{cycle\-1\}\]\) - \$rmsd]\ < 0.15 \)\} \{ break \}"
+    puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\[expr \$\{cycle\}\-1\]\) - \$rmsd]\ < 0.15 \)\} \{ break \}"
   }
 
   # end loop

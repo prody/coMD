@@ -78,6 +78,7 @@ namespace eval ::comd:: {
   variable dev_mag 
   variable accept_para
   variable max_steps
+  variable step_cutoff
   # TMD options
   variable spring_k 
   variable tmd_len 
@@ -399,14 +400,14 @@ based on topology parameters provided. Suggested file extension is .top but othe
   #  -textvariable ::comd::anm_cutoff] \
   #  -row 0 -column 2 -columnspan 3 -sticky w
 
-  grid [button $mfamc.stepcut_help -text "?" -padx 0 -pady 0 -command {
+  grid [button $mfamc.step_cutoffut_help -text "?" -padx 0 -pady 0 -command {
     tk_messageBox -type ok -title "HELP" \
       -message "To keep structure intact and to avoid having unrealistic \
         and very different structures in ANM-MC step, an rmsd threshold is used. Suggested value is 4 A."}] \
     -row 0 -column 0 -sticky w
-  grid [label $mfamc.stepc_label -text "Step cutoff (A): "] \
+  grid [label $mfamc.step_cutoff_label -text "Step cutoff (A): "] \
     -row 0 -column 1 -sticky w
-  grid [entry $mfamc.stepc_field -width 17 \
+  grid [entry $mfamc.step_cutoff_field -width 17 \
     -textvariable ::comd::step_cutoff] \
     -row 0 -column 2 -columnspan 3 -sticky w
 
@@ -602,8 +603,13 @@ proc ::comd::Prepare_system {} {
   if {$::comd::outputdir != ""} {
       if {![file isdirectory $::comd::outputdir]} {
         if {[catch {file mkdir $::comd::outputdir}]} {
-          tk_messageBox -type ok -title "ERROR" \
+          if {[info exists ::comd::from_commandline]} {
+            error "Could not make output folder: $::comd::outputdir"
+          } else {
+            tk_messageBox -type ok -title "ERROR" \
             -message "Could not make output folder: $::comd::outputdir"
+          }
+          
           return
 
         }
@@ -1001,18 +1007,19 @@ proc ::comd::Prepare_system {} {
   if {$::comd::anm_cutoff eq ""} {set ::comd::anm_cutoff 0}
   if {$::comd::accept_para eq ""} {set ::comd::accept_para 0}
   if {$::comd::max_steps eq ""} {set ::comd::max_steps 0}
+  if {$::comd::step_cutoff eq ""} {set ::comd::step_cutoff 0}
   puts $tcl_file "set sh_file \[open \"$::comd::output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${::comd::output_prefix}.sh\""
   if {[info exists ::comd::num_cores]} {
     puts $tcl_file "puts \$sh_file \"export MKL_NUM_THREADS=[expr $::comd::num_cores/2]\""
   }
   puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker1.pdb \
-    walker1_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::stepc \
+    walker1_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::step_cutoff \
     \$::comd::dev_mag \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
     \>& cycle_\${cycle}_ini_anmmc_log.txt \&\""
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker2.pdb \
-    walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::stepc \
+    walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::step_cutoff \
     \$::comd::dev_mag \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
     \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
   }
@@ -1414,9 +1421,9 @@ if { $argc < 3 } {
     if {$index eq 3} {set ::comd::walker2_pdb [lindex $argv $index]}
     if {$index eq 4} {
       set ::comd::comd_cycle [lindex $argv $index]
-      set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
       puts "comd_cycle is:"
       puts $::comd::comd_cycle
+      set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
     }
     if {$index eq 5} {
       set ::comd::dev_mag [lindex $argv $index]
@@ -1425,10 +1432,10 @@ if { $argc < 3 } {
       puts $::comd::dev_mag
     }
     if {$index eq 6} {
-      set ::comd::stepc [lindex $argv $index]
-      set ::comd::stepc [expr $::comd::stepc]
-      puts "dev_mag is:"
-      puts $::comd::stepc
+      set ::comd::step_cutoff [lindex $argv $index]
+      set ::comd::step_cutoff [expr $::comd::step_cutoff]
+      puts "step_cutoff is:"
+      puts $::comd::step_cutoff
     }
     if {$index eq 7} {set ::comd::walker1_chid [lindex $argv $index]}
     if {$index eq 8} {set ::comd::walker2_chid [lindex $argv $index]}
@@ -1453,23 +1460,23 @@ if { $argc < 3 } {
   for {set index $index} {$index < $num_args} {incr index} {
     if {$index eq 4} {set ::comd::comd_cycle 100}
     if {$index eq 5} {set ::comd::dev_mag 0}
-    if {$index eq 5} {set ::comd::stepc 0}
-    if {$index eq 8} {set ::comd::solvent_padding_x 10}
-    if {$index eq 9} {set ::comd::solvent_padding_y 10}
-    if {$index eq 10} {set ::comd::solvent_padding_z 10}
-    if {$index eq 11} {set ::comd::topo_file [list]}
-    if {$index eq 12} {set ::comd::temperature 298}
-    if {$index eq 13} {set ::comd::min_length 1}
-    if {$index eq 14} {set ::comd::para_file [list]}
-    if {$index eq 15} {set ::comd::anm_cutoff ""}
-    if {$index eq 16} {set ::comd::accept_para ""}
-    if {$index eq 17} {set ::comd::max_steps ""}
-    if {$index eq 18} {set ::comd::spring_k 20000}
-    if {$index eq 19} {set ::comd::tmd_len 10}
-    if {$index eq 22} {set ::comd::run_now 1}
-    if {$index eq 23} {set ::comd::from_commandline 1}
+    if {$index eq 6} {set ::comd::step_cutoff 0}
+    if {$index eq 9} {set ::comd::solvent_padding_x 10}
+    if {$index eq 10} {set ::comd::solvent_padding_y 10}
+    if {$index eq 11} {set ::comd::solvent_padding_z 10}
+    if {$index eq 12} {set ::comd::topo_file [list]}
+    if {$index eq 13} {set ::comd::temperature 298}
+    if {$index eq 14} {set ::comd::min_length 1}
+    if {$index eq 15} {set ::comd::para_file [list]}
+    if {$index eq 16} {set ::comd::anm_cutoff ""}
+    if {$index eq 17} {set ::comd::accept_para ""}
+    if {$index eq 18} {set ::comd::max_steps ""}
+    if {$index eq 19} {set ::comd::spring_k 20000}
+    if {$index eq 20} {set ::comd::tmd_len 10}
+    if {$index eq 23} {set ::comd::run_now 1}
+    if {$index eq 24} {set ::comd::from_commandline 1}
   }
-
+  puts $::comd::from_commandline
   set ::comd::start_dir [pwd]
   ::comd::Prepare_system
 

@@ -10,8 +10,8 @@ for arg in sys.argv:
 
 initial_pdbn=ar[1]
 final_pdbn=ar[2]
-initial_pdb_id = initial_pdbn[initial_pdbn.rfind('.')]
-final_pdb_id = final_pdbn[final_pdbn.rfind('.')]
+initial_pdb_id = initial_pdbn[:initial_pdbn.rfind('.')]
+final_pdb_id = final_pdbn[:final_pdbn.rfind('.')]
 
 original_initial_pdb = ar[3]
 original_final_pdb = ar[4]

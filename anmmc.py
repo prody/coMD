@@ -73,13 +73,12 @@ eigs_n = eigs / sum(eigs)
 eigscumsum = eigs_n.cumsum()
 U = pdb_anm.getEigvecs()
 
-# Scale factor for steps
+# Take a step along mode 1 (ID 0) to calculate the scale factor
 pdb_ca = initial_pdb_ca
 pdb_ca_temp = pdb_ca.copy()
 ID = 0
 direction = 1.
 scale_factor = 1.
-
 coords_temp = pdb_ca_temp.getCoords()
 coords_temp[0:,0] = coords_temp[0:,0] + direction * U[range(0,len(U),3),ID] * eigs[ID] * scale_factor
 coords_temp[0:,1] = coords_temp[0:,1] + direction * U[range(1,len(U),3),ID] * eigs[ID] * scale_factor
@@ -87,7 +86,7 @@ coords_temp[0:,2] = coords_temp[0:,2] + direction * U[range(2,len(U),3),ID] * ei
 pdb_ca_temp.setCoords(coords_temp)
 pdb_ca = pdb_ca_temp.copy()
 biggest_rmsd = calcRMSD(pdb_ca.getCoords(), initial_pdb_ca.getCoords())
-scale_factor = devi/biggest_rmsd
+scale_factor = devi/biggest_rmsd # This means that devi is the maximum deviation in RMSD for any step
 
 # counts for metropolis sampling
 count1 = 0 # Up-hill moves
@@ -117,20 +116,14 @@ if original_initial_pdb != original_final_pdb:
     dist = buildDistMatrix(initial_pdb_ca)
     Ep = sum((native_dist - dist)**2)
 
+# Reset pdb_ca (the current structure whole the steps back to the original)
 pdb_ca = initial_pdb_ca
-
-ensemble = Ensemble()
-ensemble.setAtoms(initial_pdb_ca)
-ensemble.setCoords(initial_pdb_ca)
-
-ensemble_final = Ensemble()
-ensemble_final.setAtoms(initial_pdb_ca)
-ensemble_final.setCoords(initial_pdb_ca)
 
 step_count = 0
 check_step_counts = [0]
 
-sys.stdout.write('rmsd' + ' '*(16-len('rand')) + 'rand' + ' '*5 + 'mode ID' + ' '*2 + 'k' + ' '*8 + 'step count' + '\n')
+sys.stdout.write(' '*2 + 'rmsd' + ' '*2 + 'rand' + ' '*2 + 'ID' + ' '*3 + 'step' \
+                 + ' '*2 + 'accept_para' + '\n')
 
 # MC Loop 
 for k in range(N):
@@ -149,24 +142,25 @@ for k in range(N):
         dist = buildDistMatrix(pdb_ca_temp)
         En = sum((native_dist - dist)**2)
 
-        # check whether you are heading the right way
-        # and accept uphill moves depending on the
-        # Metropolis criterion
-        # The energies depend on the scale_factor,
-        # which acts like an effective temperature.
+        # Check whether you are heading the right way and accept uphill moves depending on the Metropolis criterion.
+        # Classically this depends on RT but these are subsumed by the unknown units from having a uniform spring constant
+	# that is set to 1.
         if Ep > En:
             count3 += 1
             pdb_ca = pdb_ca_temp.copy()
             Ep = En
-            step_count += 1
-        elif exp(-(En-Ep)/(Ep*accept_para)) > random():
-            pdb_ca = pdb_ca_temp.copy() 
+            accepted = 1
+
+        elif exp(-(En-Ep)/(Ep * accept_para)) > random():
+            pdb_ca = pdb_ca_temp.copy()
             count1 += 1
             count2 += 1
             Ep = En
-            step_count += 1
+            accepted = 1
+
         else:
             count1 += 1
+            accepted = 0
 
         if (mod(k,25)==0 and not(k==0)):
             # Update of the accept_para to keep the MC para reasonable
@@ -180,22 +174,22 @@ for k in range(N):
         # for exploration based on one structure (two runs)
         # all moves are uphill but will be accepted anyway
         pdb_ca = pdb_ca_temp.copy()
-        count1 += 1
-        count2 += 1
-        step_count += 1
+        count3 += 1
 
     rmsd = calcRMSD(pdb_ca.getCoords(), initial_pdb_ca.getCoords())
-    sys.stdout.write('{:15.8f}'.format(rmsd) + ' ' + \
-             '{:8.7f}'.format(rand) + ' ' + '{:8d}'.format(ID) + ' ' + '{:8d}'.format(k+1) + ' ' + '{:11d}'.format(step_count) + '\n')
+    sys.stdout.write('{:6.2f}'.format(rmsd) + ' ' + '{:5.2f}'.format(rand) + \
+                     '{:4d}'.format(ID) + '{:7d}'.format(k) + ' '*2 + str(accepted) + ' '*2 + \
+                     '{:5.4f}'.format(accept_para) + '\n')
 
-    if rmsd > stepcutoff: 
+    if rmsd > stepcutoff:
         break
-        
-    ensemble.addCoordset(pdb_ca.getCoords())
     
+# Build an ensemble for writing the final structure to a dcd file
+ensemble_final = Ensemble()
+ensemble_final.setAtoms(initial_pdb_ca)
+ensemble_final.setCoords(initial_pdb_ca)
 ensemble_final.addCoordset(pdb_ca.getCoords())
-    
 writeDCD(final_structure_dcd_name, ensemble_final)
-writeDCD(ensemble_dcd_name, ensemble)
-#ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
-#savetxt(initial_pdb_id + '_ratio.dat', ratios)
+
+ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
+savetxt(initial_pdb_id + '_ratio.dat', ratios)

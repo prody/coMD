@@ -836,8 +836,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"outputEnergies [expr $::comd::min_length*100]\""
   puts $tcl_file "puts \$namd_file \"outputPressure [expr $::comd::min_length*100]\""
   puts $tcl_file "puts \$namd_file \"restartfreq [expr $::comd::min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*100]\""
+  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*500]\""
+  puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*500]\""
   puts $tcl_file "puts \$namd_file \"minimize [expr $::comd::min_length*500]\""
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
@@ -884,8 +884,8 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"outputEnergies [expr $::comd::min_length*100]\""
     puts $tcl_file "puts \$namd_file \"outputPressure [expr $::comd::min_length*100]\""
     puts $tcl_file "puts \$namd_file \"restartfreq [expr $::comd::min_length*100]\""
-    puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*100]\""
-    puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*100]\""
+    puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*500]\""
+    puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*500]\""
     puts $tcl_file "puts \$namd_file \"minimize [expr $::comd::min_length*500]\""
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"
@@ -971,7 +971,6 @@ proc ::comd::Prepare_system {} {
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "mol delete all"
-  
     puts $tcl_file "mol load psf walker2_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}-1\].coor"
     puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
@@ -984,9 +983,8 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "\$s1 writepdb starting_walker2.pdb"
     
     puts $tcl_file "mol delete all"
-  
     puts $tcl_file "mol load psf walker2_ionized.psf"
-    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\$cycle.coor"
+    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}-1\].coor"
     puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   }
   puts $tcl_file "\$s1 writepdb walker1_target.pdb"
@@ -995,7 +993,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "mol delete all"
   
     puts $tcl_file "mol load psf walker1_ionized.psf"
-    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\$cycle.coor"
+    puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}-1\].coor"
     puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
     puts $tcl_file "\$s1 writepdb walker2_target.pdb"
   }
@@ -1257,8 +1255,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"outputEnergies [expr $::comd::min_length*100]\""
   puts $tcl_file "puts \$namd_file \"outputPressure [expr $::comd::min_length*100]\""
   puts $tcl_file "puts \$namd_file \"restartfreq [expr $::comd::min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*100]\""
-  puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*100]\""
+  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*500]\""
+  puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*500]\""
   puts $tcl_file "puts \$namd_file \"minimize [expr $::comd::min_length*500]\""
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
@@ -1308,8 +1306,8 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"outputEnergies [expr $::comd::min_length*100]\""
     puts $tcl_file "puts \$namd_file \"outputPressure [expr $::comd::min_length*100]\""
     puts $tcl_file "puts \$namd_file \"restartfreq [expr $::comd::min_length*100]\""
-    puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*100]\""
-    puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*100]\""
+    puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*500]\""
+    puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*500]\""
     puts $tcl_file "puts \$namd_file \"minimize [expr $::comd::min_length*500]\""
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"

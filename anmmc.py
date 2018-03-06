@@ -10,8 +10,8 @@ for arg in sys.argv:
 
 initial_pdbn=ar[1]
 final_pdbn=ar[2]
-initial_pdb_id = initial_pdbn[initial_pdbn.rfind('.')]
-final_pdb_id = final_pdbn[final_pdbn.rfind('.')]
+initial_pdb_id = initial_pdbn[:initial_pdbn.rfind('.')]
+final_pdb_id = final_pdbn[:final_pdbn.rfind('.')]
 
 original_initial_pdb = ar[3]
 original_final_pdb = ar[4]
@@ -24,9 +24,9 @@ else:
     devi=1.5
 
 if len(ar) > 7 and ar[7].strip() is not '0':
-    anm_cut=float(ar[7])
+    stepcutoff=float(ar[7])
 else:
-    anm_cut=15
+    stepcutoff=2.
 
 if len(ar) > 8 and ar[8].strip() is not '0':
     accept_para=int(ar[8])
@@ -34,28 +34,32 @@ else:
     accept_para=0.1
 
 if len(ar) > 9 and ar[9].strip() is not '0':
-    N=int(ar[9])
+    anm_cut=float(ar[9])
+else:
+    anm_cut=15
+
+if len(ar) > 10 and ar[10].strip() is not '0':
+    N=int(ar[10])
 else:
     N=100
 
-if len(ar) > 10 and ar[9].strip() is not '0':
-    final_structure_dcd_name = ar[10]
+if len(ar) > 11 and ar[11].strip() is not '0':
+    final_structure_dcd_name = ar[11]
 else:
     final_structure_dcd_name = 'cycle_{0}_'.format(int(comd_cycle_number)) + \
                                 initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd'
 
-if len(ar) > 11 and ar[11].strip() is not '0':
-    ensemble_dcd_name = ar[11]
+if len(ar) > 12 and ar[12].strip() is not '0':
+    ensemble_dcd_name = ar[12]
 else:
     ensemble_dcd_name = 'cycle_{0}_'.format(int(comd_cycle_number)) + \
                          initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd'
 
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
-
-# Current Structure 
+ 
 initial_pdb_ca = initial_pdb.ca
-stepcutoff = 2.
+final_pdb_ca = final_pdb.ca
 
 # ANM calculation based on current
 pdb_anm = ANM('pdb ca')
@@ -69,11 +73,8 @@ eigs_n = eigs / sum(eigs)
 eigscumsum = eigs_n.cumsum()
 U = pdb_anm.getEigvecs()
 
-# Target Structure
-final_pdb_ca = final_pdb.ca
-pdb_ca = initial_pdb_ca
-
 # Scale factor for steps
+pdb_ca = initial_pdb_ca
 pdb_ca_temp = pdb_ca.copy()
 ID = 0
 direction = 1.

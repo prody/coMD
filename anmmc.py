@@ -29,9 +29,11 @@ else:
     stepcutoff=2.
 
 if len(ar) > 8 and ar[8].strip() is not '0':
-    accept_para=int(ar[8])
+    accept_ratio=int(ar[8])
 else:
-    accept_para=0.1
+    accept_ratio=0.9
+
+accept_para=0.1
 
 if len(ar) > 9 and ar[9].strip() is not '0':
     anm_cut=float(ar[9])
@@ -170,9 +172,9 @@ for k in range(N):
         if (mod(k,25)==0 and not(k==0)):
             # Update of the accept_para to keep the MC para reasonable
             # See comment lines 82 to 85. 
-            if f > 0.95:
+            if f > acceptance_ratio + 0.05:
                 accept_para *= 1.5;
-            elif f < 0.85:
+            elif f < acceptance_ratio - 0.05:
                 accept_para /= 1.5
 
     else:

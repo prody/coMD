@@ -102,6 +102,17 @@ namespace eval ::comd:: {
   variable which_mode [lindex $titles 0]
 }
 
+proc wsplit {string sep} {
+    set first [string first $sep $string]
+    if {$first == -1} {
+        return [list $string]
+    } else {
+        set l [string length $sep]
+        set left [string range $string 0 [expr {$first-1}]]
+        set right [string range $string [expr {$first+$l}] end]
+        return [concat [list $left] [wsplit $right $sep]]
+    }
+}
 
 proc comd::Logview {log_file_name} {
   variable logcount
@@ -768,6 +779,7 @@ proc ::comd::Prepare_system {} {
     set fzlen [expr {$fzmax-$fzmin+16.0}]
   }
   
+  puts "got here -1"
   ####### INITIAL MINIMIZATION OF STARTING PROTEIN STRUCTURES #######
   puts $log_file "Simulation: NAMD configuration files for minimization written in ${::comd::output_prefix}_walker1_min"
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
@@ -794,11 +806,32 @@ proc ::comd::Prepare_system {} {
   	puts $tcl_file "set python_path $python_path\/python" 
   }
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  if {[info exists ::comd::gpu_selected] && [info exists ::comd::num_cores]} { 
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \+p[expr $::comd::num_cores/2] \+devices $::comd::gpus_selected\\\"\"" 
-  } elseif {[info exists ::comd::gpu_selected]} {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \+devices $::comd::gpus_selected\\\"\""
-  } elseif {[info exists ::comd:num_cores]} {
+
+  puts "got here 0"
+  if {[info exists $::comd::gpus_selected]} {
+    if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}] || [expr [llength $::comd::gpus_selected] == 1]} {
+      set gpus_selected [wsplit $::comd::gpus_selected ", "]
+      set selection1 [list]
+      set selection2 [list]
+      for {set i 0} {$i < [expr [llength $gpus_selected]/2]} {incr i} {
+        lappend selection1 [lindex $gpus_selected $i]
+        lappend selection2 [lindex $gpus_selected [expr {${i} + [llength $gpus_selected]/2 }]]
+      }
+      set gpus_selection1 [join $selection1 ", "]
+      set gpus_selection2 [join $selection2 ", "]
+    } else {
+      set gpus_selection1 $::comd::gpus_selected
+      set gpus_selection2 $::comd::gpus_selected
+    }
+  } else {
+    set gpus_selection1 ""
+    set gpus_selection2 ""
+  }
+
+puts $gpus_selection1
+puts [llength [wsplit $gpus_selection1 ", "]]
+
+  if {[info exists ::comd:num_cores]} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \+p[expr $::comd::num_cores/2] \\\"\""
   } else {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \\\"\""
@@ -848,7 +881,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min0.log \&\""
+  puts "got here 1"
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn [llength $selection1] min.conf > min0.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\"" 
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
@@ -896,7 +930,8 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min0.log \&\""
+    puts "got here 2"
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn [llength $selection2] min.conf > min0.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\"" 
   }
 
@@ -1069,11 +1104,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$::comd::output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${::comd::output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  if {[info exists ::comd::gpu_selected] && [info exists ::comd::num_cores]} { 
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr $::comd::num_cores/2] \+devices $::comd::gpus_selected\\\"\"" 
-  } elseif {[info exists ::comd::gpu_selected]} {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+devices $::comd::gpus_selected\\\"\""
-  } elseif {[info exists ::comd:num_cores]} {
+  if {[info exists ::comd:num_cores]} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr $::comd::num_cores/2] \\\"\""
   } else {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
@@ -1131,7 +1162,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"run [expr $::comd::tmd_len*5]\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_pro\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD pro.conf > pro\$\{cycle\}.log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn [llength $selection1] pro.conf > pro\$\{cycle\}.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\""
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
@@ -1187,11 +1218,10 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"run [expr $::comd::tmd_len*5]\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_pro\""
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD pro.conf > pro\$\{cycle\}.log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn [llength $selection2] pro.conf > pro\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\""
   }
 
-  puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "puts \"Now running TMD \$\{cycle\}\""
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
@@ -1211,11 +1241,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"$::comd::output_prefix.sh\" w\]"
   puts $tcl_file "set sh_filename \"${::comd::output_prefix}.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  if {[info exists ::comd::gpu_selected] && [info exists ::comd::num_cores]} { 
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr $::comd::num_cores/2] \+devices $::comd::gpus_selected\\\"\"" 
-  } elseif {[info exists ::comd::gpu_selected]} {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+devices $::comd::gpus_selected\\\"\""
-  } elseif {[info exists ::comd:num_cores]} {
+  if {[info exists ::comd:num_cores]} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr $::comd::num_cores/2] \\\"\""
   } else {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
@@ -1268,7 +1294,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn [llength $selection1] min.conf > min\[expr \$\{cycle\}+1\].log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\""
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
@@ -1319,7 +1345,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\$\{cycle\}.log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn [llength $selection2] min.conf > min\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\""
   }
 
@@ -1482,6 +1508,44 @@ if { $argc < 3 } {
       if {$index eq 23} {set ::comd::run_now 1}
       if {$index eq 24} {set ::comd::from_commandline 1}
     }
+
+  if {[catch {exec "nvidia-smi"}]} {
+    set ::comd::gpus_selected ""
+  } else {
+    set output [eval exec "nvidia-smi"]
+   set records [split $output "\n"]
+
+    set j 0
+    foreach rec $records {
+      incr j
+    }
+
+    set k 0
+    set i 0
+    set done_header 0
+    set ::comd::gpus_selected [list]
+    foreach rec $records {
+    set fields [split $rec]
+
+    if {$k > [expr {$j-9}]} {break}
+
+    if {$i == 6 && $done_header == 0} {
+      set done_header 1
+      set i 0
+    } elseif {$done_header && $i == 1} {
+      set fields [split $rec " "]
+      lappend ::comd::gpus_selected [lindex $fields 3]
+    } elseif {$done_header && $i == 3} {
+      set i 0
+    }
+
+    incr i
+    incr k
+    }
+
+    set ::comd::gpus_selected [join $::comd::gpus_selected ", "]  
+  }
+
     set ::comd::start_dir [pwd]
     ::comd::Prepare_system
 

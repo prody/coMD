@@ -865,7 +865,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
 
-  if {$::comd::gpus_present} {
+  if {$::comd::gpus_present == 1} {
     puts "got here 1.1"
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min0.log \&\""
   } else {
@@ -921,7 +921,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
 
-    if {$::comd::gpus_present} {
+    if {$::comd::gpus_present == 1} {
       puts "got here 2.1"
       puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min0.log \&\""
     } else {
@@ -1160,7 +1160,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_pro\""
 
-  if {$::comd::gpus_present} {
+  if {$::comd::gpus_present == 1} {
     puts "got here 3.1"
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
   } else {
@@ -1308,7 +1308,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
 
-  if {$::comd::gpus_present} {
+  if {$::comd::gpus_present == 1} {
     puts "got here 5.1"
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
   } else {
@@ -1367,7 +1367,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
 
-    if {$::comd::gpus_present} {
+    if {$::comd::gpus_present == 1} {
       puts "got here 6.1"
       puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
     } else {
@@ -1538,12 +1538,7 @@ if { $argc < 3 } {
       if {$index eq 19} {set ::comd::para_file [list]}
       if {$index eq 20} {set ::comd::spring_k 20000}
       if {$index eq 21} {
-        if {[catch {exec "nvidia-smi"}]} {
-          set ::comd::gpus_selected ""
-          set ::comd::gpus_selection1 ""
-          set ::comd::gpus_selection2 ""
-          set ::comd::gpus_present 0
-        } else {
+        if {[catch {
           set output [eval exec "nvidia-smi"]
           set records [split $output "\n"]
 
@@ -1591,18 +1586,22 @@ if { $argc < 3 } {
             set ::comd::gpus_selection1 $::comd::gpus_selected
             set ::comd::gpus_selection2 $::comd::gpus_selected
           }
+          puts $::comd::gpus_selection1
+          puts [llength [wsplit $::comd::gpus_selection1 ","]]
+        }]} {
+          set ::comd::gpus_present 0
+        } else {
+          set ::comd::gpus_present 1
         }
-        set ::comd::gpus_present 1
-        puts $::comd::gpus_selection1
-        puts [llength [wsplit $::comd::gpus_selection1 ","]]
       }
 
       if {$index eq 23} {set ::comd::run_now 1}
       if {$index eq 24} {set ::comd::from_commandline 1}
     }
-    
+    puts "gpus_present:"
+    puts $::comd::gpus_present
     set ::comd::start_dir [pwd]
-    ::comd::Prepare_system
+    #::comd::Prepare_system
     exit
 
   } result ]} {

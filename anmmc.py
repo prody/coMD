@@ -19,9 +19,9 @@ original_final_pdb = ar[4]
 comd_cycle_number = ar[5]
 
 if len(ar) > 6 and ar[6].strip() is not '0':
-    devi=float(ar[6])
+    devi = float(ar[6])
 else:
-    devi=1.5
+    devi = 0.5
 
 if len(ar) > 7 and ar[7].strip() is not '0':
     stepcutoff=float(ar[7])
@@ -29,9 +29,9 @@ else:
     stepcutoff=2.
 
 if len(ar) > 8 and ar[8].strip() is not '0':
-    accept_ratio=int(ar[8])
+    acceptance_ratio = int(ar[8])
 else:
-    accept_ratio=0.9
+    acceptance_ratio = 0.9
 
 accept_para=0.1
 

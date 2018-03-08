@@ -809,11 +809,6 @@ proc ::comd::Prepare_system {} {
   }
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
 
-  puts $::comd::gpus_selected
-  puts $::comd::gpus_selection1
-  set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection1 ","]] + 1}]
-  puts $processes_per_run
-
   if {[info exists ::comd::num_cores]} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \+p[expr $::comd::num_cores/2] \\\"\""
   } else {
@@ -866,10 +861,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
 
   if {$::comd::gpus_present == 1} {
-    puts "got here 1.1"
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min0.log \&\""
   } else {
-    puts "got here 1.2"
     puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
   }
 
@@ -922,10 +915,8 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
 
     if {$::comd::gpus_present == 1} {
-      puts "got here 2.1"
       puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min0.log \&\""
     } else {
-      puts "got here 2.2"
       puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min0.log \&\""
     }
 
@@ -1161,10 +1152,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_pro\""
 
   if {$::comd::gpus_present == 1} {
-    puts "got here 3.1"
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
   } else {
-    puts "got here 3.2"
     puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
   }
 
@@ -1225,10 +1214,8 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_pro\""
 
     if {$::comd::gpus_present == 1} {
-      puts "got here 4.1"
       puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
     } else {
-      puts "got here 4.2"
       puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
     }
 
@@ -1309,10 +1296,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
 
   if {$::comd::gpus_present == 1} {
-    puts "got here 5.1"
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
   } else {
-    puts "got here 5.2"
     puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
   }
 
@@ -1368,10 +1353,9 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
 
     if {$::comd::gpus_present == 1} {
-      puts "got here 6.1"
+
       puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
     } else {
-      puts "got here 6.2"
       puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
     }
 

@@ -90,10 +90,11 @@ namespace eval ::comd:: {
   variable gpus_selection2
   variable gpus_present
   variable python_path ""
+  variable NAMD_PATH ""
   # output options
   variable outputdir 
   variable output_prefix
-  variable from_commandline
+  variable from_commandline 0
   variable run_now
   variable start_dir
   
@@ -800,14 +801,23 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "cd $::comd::outputdir"
   puts $tcl_file "set sh_filename \"${::comd::output_prefix}.sh\""
   puts $tcl_file "set sh_file \[open \$sh_filename w\]"
-  puts $tcl_file "package require exectool"
-  puts $tcl_file "set namd2path \[::ExecTool::find \"namd2\"\]"
-  if {$::comd::python_path == ""} {
-  	puts $tcl_file "set python_path \[::ExecTool::find \"python\"\]"	
+
+  if {$::comd::from_commandline == 0} {
+    puts $tcl_file "package require exectool"
+  }
+
+  if {$::comd::NAMD_PATH == ""} {
+    puts $tcl_file "set namd2path \[::ExecTool::find \"namd2\"\]"
   } else {
-  	puts $tcl_file "set python_path $python_path\/python" 
+    puts $tcl_file "set namd2path ${::comd::NAMD_PATH}"
+  }
+  if {$::comd::python_path == ""} {
+    puts $tcl_file "set python_path \[::ExecTool::find \"python\"\]"	
+  } else {
+    puts $tcl_file "set python_path $::comd::python_path\/python" 
   }
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
+  set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection1 ","]] + 1}]
 
   if {[info exists ::comd::num_cores]} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \+p[expr $::comd::num_cores/2] \\\"\""
@@ -1152,9 +1162,9 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_pro\""
 
   if {$::comd::gpus_present == 1} {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \&\""
   } else {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD pro.conf > pro\$\{cycle\}.log \&\""
   }
 
   puts $tcl_file "puts \$sh_file \"cd ..\""
@@ -1214,14 +1224,14 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_pro\""
 
     if {$::comd::gpus_present == 1} {
-      puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+      puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \&\""
     } else {
-      puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+      puts $tcl_file "puts \$sh_file \"\\\$NAMD pro.conf > pro\$\{cycle\}.log \&\""
     }
 
     puts $tcl_file "puts \$sh_file \"cd ..\""
   }
-
+  puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "puts \"Now running TMD \$\{cycle\}\""
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
@@ -1296,9 +1306,9 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
 
   if {$::comd::gpus_present == 1} {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
   } else {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\$\{cycle\}.log \&\""
   }
 
   puts $tcl_file "puts \$sh_file \"cd ..\""
@@ -1353,10 +1363,9 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
 
     if {$::comd::gpus_present == 1} {
-
-      puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+      puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
     } else {
-      puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+      puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\$\{cycle\}.log \&\""
     }
 
     puts $tcl_file "puts \$sh_file \"cd ..\""
@@ -1454,7 +1463,7 @@ if { $argc < 3 } {
 } else {
 
   if {[catch {
-    set num_args 25
+    set num_args 27
 
     # Take parameter values from input arguments as far as possible
     for {set index 0} {$index < $argc -1} {incr index} {
@@ -1464,64 +1473,71 @@ if { $argc < 3 } {
       if {$index eq  3} {set ::comd::walker2_pdb [lindex $argv $index]}
       if {$index eq  4} {
         set ::comd::comd_cycle [lindex $argv $index]
-	      set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
+	set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
       }
       if {$index eq  5} {
         set ::comd::dev_mag [lindex $argv $index]
         set ::comd::dev_mag [expr $::comd::dev_mag]
       }
       if {$index eq  6} {
+        set ::comd::accept_para [lindex $argv $index]
+        set ::comd::accept_para [expr $::comd::accept_para]
+      }
+      if {$index eq  7} {set ::comd::NAMD_PATH [lindex $argv $index]}
+      if {$index eq  8} {set ::comd::python_path [lindex $argv $index]}
+      if {$index eq  9} {
         set ::comd::step_cutoff [lindex $argv $index]
         set ::comd::step_cutoff [expr $::comd::step_cutoff]
       }
-      if {$index eq  7} {
+      if {$index eq 10} {
         set ::comd::min_length [lindex $argv $index]
         set ::comd::min_length [expr int($::comd::min_length * 100)]
-	      puts $::comd::min_length
       }
-      if {$index eq  8} {
+      if {$index eq 11} {
         set ::comd::tmd_len [lindex $argv $index]
         set ::comd::tmd_len [expr int($::comd::tmd_len * 100)]
-	      puts $::comd::tmd_len
       }
-      if {$index eq  9} {set ::comd::anm_cutoff [lindex $argv $index]}
-      if {$index eq 10} {set ::comd::max_steps [lindex $argv $index]}
-      if {$index eq 11} {set ::comd::accept_para [lindex $argv $index]}
-      if {$index eq 12} {set ::comd::walker1_chid [lindex $argv $index]}
-      if {$index eq 13} {set ::comd::walker2_chid [lindex $argv $index]}
-      if {$index eq 14} {set ::comd::solvent_padding_x [lindex $argv $index]}
-      if {$index eq 15} {set ::comd::solvent_padding_y [lindex $argv $index]}
-      if {$index eq 16} {set ::comd::solvent_padding_z [lindex $argv $index]}
-      if {$index eq 17} {set ::comd::topo_file [lindex $argv $index]}
-      if {$index eq 18} {set ::comd::temperature [lindex $argv $index]}
-      if {$index eq 19} {set ::comd::para_file [list [lindex $argv $index]]}
-      if {$index eq 20} {set ::comd::spring_k [lindex $argv $index]}
-      if {$index eq 21} {
+      if {$index eq 12} {set ::comd::anm_cutoff [lindex $argv $index]}
+      if {$index eq 13} {set ::comd::max_steps [lindex $argv $index]}
+      if {$index eq 14} {set ::comd::accept_para [lindex $argv $index]}
+      if {$index eq 15} {set ::comd::walker1_chid [lindex $argv $index]}
+      if {$index eq 16} {set ::comd::walker2_chid [lindex $argv $index]}
+      if {$index eq 17} {set ::comd::solvent_padding_x [lindex $argv $index]}
+      if {$index eq 18} {set ::comd::solvent_padding_y [lindex $argv $index]}
+      if {$index eq 19} {set ::comd::solvent_padding_z [lindex $argv $index]}
+      if {$index eq 20} {set ::comd::topo_file [lindex $argv $index]}
+      if {$index eq 21} {set ::comd::temperature [lindex $argv $index]}
+      if {$index eq 22} {set ::comd::para_file [list [lindex $argv $index]]}
+      if {$index eq 23} {set ::comd::spring_k [lindex $argv $index]}
+      if {$index eq 24} {
         set ::comd::gpus_selected [lindex $argv $index]
         set ::comd::gpus_present 1
       }
-      if {$index eq 22} {set ::comd::num_cores [lindex $argv $index]}
-      if {$index eq 23} {set ::comd::run_now [lindex $argv $index]}
+      if {$index eq 25} {set ::comd::num_cores [lindex $argv $index]}
+      if {$index eq 26} {set ::comd::run_now [lindex $argv $index]}
     }
 
     # Fill in the remaining values with defaults
     for {set index $index} {$index < $num_args} {incr index} {
       if {$index eq  4} {set ::comd::comd_cycle 100}
       if {$index eq  5} {set ::comd::dev_mag 0}
-      if {$index eq  6} {set ::comd::step_cutoff 0}
-      if {$index eq  7} {set ::comd::min_length 100}
-      if {$index eq  8} {set ::comd::tmd_len 10}
-      if {$index eq  9} {set ::comd::anm_cutoff ""}
-      if {$index eq 10} {set ::comd::max_steps [lindex $argv $index]}
-      if {$index eq 11} {set ::comd::accept_para ""}
-      if {$index eq 14} {set ::comd::solvent_padding_x 10}
-      if {$index eq 15} {set ::comd::solvent_padding_y 10}
-      if {$index eq 16} {set ::comd::solvent_padding_z 10}
-      if {$index eq 17} {set ::comd::topo_file [list]}
-      if {$index eq 18} {set ::comd::temperature 298}
-      if {$index eq 19} {set ::comd::para_file [list]}
-      if {$index eq 20} {set ::comd::spring_k 20000}
-      if {$index eq 21} {
+      if {$index eq  6} {set ::comd::accept_para ""}
+      if {$index eq  7} {set ::comd::NAMD_PATH ""}
+      if {$index eq  8} {set ::comd::python_path ""}
+      if {$index eq  9} {set ::comd::step_cutoff 0}
+      if {$index eq 10} {set ::comd::min_length 100}
+      if {$index eq 11} {set ::comd::tmd_len 10}
+      if {$index eq 12} {set ::comd::anm_cutoff ""}
+      if {$index eq 13} {set ::comd::max_steps [lindex $argv $index]}
+
+      if {$index eq 17} {set ::comd::solvent_padding_x 10}
+      if {$index eq 18} {set ::comd::solvent_padding_y 10}
+      if {$index eq 19} {set ::comd::solvent_padding_z 10}
+      if {$index eq 20} {set ::comd::topo_file [list]}
+      if {$index eq 21} {set ::comd::temperature 298}
+      if {$index eq 22} {set ::comd::para_file [list]}
+      if {$index eq 23} {set ::comd::spring_k 20000}
+      if {$index eq 24} {
         if {[catch {
           set output [eval exec "nvidia-smi"]
           set records [split $output "\n"]
@@ -1579,11 +1595,10 @@ if { $argc < 3 } {
         }
       }
 
-      if {$index eq 23} {set ::comd::run_now 1}
-      if {$index eq 24} {set ::comd::from_commandline 1}
+      if {$index eq 26} {set ::comd::run_now 1}
+      if {$index eq 27} {set ::comd::from_commandline 1}
     }
-    puts "gpus_present:"
-    puts $::comd::gpus_present
+
     set ::comd::start_dir [pwd]
     ::comd::Prepare_system
     exit

@@ -1491,10 +1491,12 @@ if { $argc < 3 } {
       if {$index eq 19} {set ::comd::para_file [list]}
       if {$index eq 20} {set ::comd::spring_k 20000}
       if {$index eq 21} {
+        puts "got here 1"
         if {[catch {exec "nvidia-smi"}]} {
+          puts "got here 1.1"
           set ::comd::gpus_selected ""
-          set gpus_selection1 ""
-          set gpus_selection2 ""
+          set ::comd::gpus_selection1 ""
+          set ::comd::gpus_selection2 ""
         } else {
           set output [eval exec "nvidia-smi"]
           set records [split $output "\n"]
@@ -1544,14 +1546,16 @@ if { $argc < 3 } {
             set ::comd::gpus_selection2 $::comd::gpus_selected
           }
         }
-
+        puts "got here 1.2"
         puts $::comd::gpus_selection1
+        puts "got here 1.3"
         puts [llength [wsplit $::comd::gpus_selection1 ","]]
       }
 
       if {$index eq 23} {set ::comd::run_now 1}
       if {$index eq 24} {set ::comd::from_commandline 1}
     }
+    puts "got here 2"
     
     set ::comd::start_dir [pwd]
     ::comd::Prepare_system

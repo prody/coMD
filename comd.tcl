@@ -1601,7 +1601,7 @@ if { $argc < 3 } {
     puts "gpus_present:"
     puts $::comd::gpus_present
     set ::comd::start_dir [pwd]
-    #::comd::Prepare_system
+    ::comd::Prepare_system
     exit
 
   } result ]} {

@@ -810,8 +810,7 @@ proc ::comd::Prepare_system {} {
 
   puts $::comd::gpus_selected
   puts $::comd::gpus_selection1
-  puts "got here 0"
-  set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection1 ", "]] + 1}]
+  set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection1 ","]] + 1}]
   puts $processes_per_run
 
   if {[info exists ::comd:num_cores]} {
@@ -1530,18 +1529,18 @@ if { $argc < 3 } {
             incr k
           }
 
-          set ::comd::gpus_selected [join $::comd::gpus_selected ", "]
+          set ::comd::gpus_selected [join $::comd::gpus_selected ","]
 
           if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}] || [expr [llength $::comd::gpus_selected] == 1]} {
-            set gpus_selected [wsplit $::comd::gpus_selected ", "]
+            set gpus_selected [wsplit $::comd::gpus_selected ","]
             set selection1 [list]
             set selection2 [list]
             for {set i 0} {$i < [expr [llength $gpus_selected]/2]} {incr i} {
               lappend selection1 [lindex $gpus_selected $i]
               lappend selection2 [lindex $gpus_selected [expr {${i} + [llength $gpus_selected]/2 }]]
             }
-            set ::comd::gpus_selection1 [join $selection1 ", "]
-            set ::comd::gpus_selection2 [join $selection2 ", "]
+            set ::comd::gpus_selection1 [join $selection1 ","]
+            set ::comd::gpus_selection2 [join $selection2 ","]
           } else {
             set ::comd::gpus_selection1 $::comd::gpus_selected
             set ::comd::gpus_selection2 $::comd::gpus_selected
@@ -1549,7 +1548,7 @@ if { $argc < 3 } {
         }
 
         puts $::comd::gpus_selection1
-        puts [llength [wsplit $::comd::gpus_selection1 ", "]]
+        puts [llength [wsplit $::comd::gpus_selection1 ","]]
       }
 
       if {$index eq 23} {set ::comd::run_now 1}

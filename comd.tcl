@@ -863,7 +863,6 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
-  puts "got here 1"
   puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min0.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\"" 
 
@@ -912,7 +911,6 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
-    puts "got here 2"
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min0.log \&\""
 
     puts $tcl_file "puts \$sh_file \"cd ..\"" 
@@ -965,7 +963,7 @@ proc ::comd::Prepare_system {} {
   }
 
   #loop start
-  puts $tcl_file "for {set cycle 1} {\$cycle < \$::comd::comd_cycle} {incr cycle} {"
+  puts $tcl_file "for {set cycle 1} {\$cycle < $::comd::comd_cycle} {incr cycle} {"
   puts $tcl_file "mol delete all"
 
 

@@ -863,7 +863,7 @@ proc ::comd::Prepare_system {} {
   if {$::comd::gpus_present == 1} {
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min0.log \&\""
   } else {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\[expr \$\{cycle\}+1\].log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min0.log \&\""
   }
 
   puts $tcl_file "puts \$sh_file \"cd ..\"" 

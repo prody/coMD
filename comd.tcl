@@ -944,6 +944,20 @@ proc ::comd::Prepare_system {} {
   }
   puts $tcl_file "puts \"Finished minimization 0\""
 
+  # Check if any files are missing and if so raise an error
+  puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker1_min/walker1_minimized0.coor r} fid\]} {"
+  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.err\" w\]"
+  puts $tcl_file "puts \$err_file \"The original minimization of structure 1 failed. Please try again with a different structure 1.\""
+  puts $tcl_file "exit"
+  puts $tcl_file "}"
+  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
+    puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker2_min/walker2_minimized0.coor r} fid\]} {"
+    puts $tcl_file "set err_file \[open \"$::comd::output_prefix.err\" w\]"
+    puts $tcl_file "puts \$err_file \"The original minimization of structure 1 failed. Please try again with a different structure 1.\""
+    puts $tcl_file "exit"
+    puts $tcl_file "}"
+  }
+
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "package require psfgen"
     puts $tcl_file "mol delete all" 
@@ -964,20 +978,6 @@ proc ::comd::Prepare_system {} {
   }
 
   puts $tcl_file "file mkdir ${::comd::output_prefix}_walker1_pro"
-
-  # Check if any files are missing and if so raise an error
-  puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker1_min/walker1_minimized0.coor r} fid\]} {"
-  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.err\" w\]"
-  puts $tcl_file "puts \$err_file \"The original minimization of structure 1 failed. Please try again with a different structure 1.\""
-  puts $tcl_file "exit"
-  puts $tcl_file "}"
-  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker2_min/walker2_minimized0.coor r} fid\]} {"
-    puts $tcl_file "set err_file \[open \"$::comd::output_prefix.err\" w\]"
-    puts $tcl_file "puts \$err_file \"The original minimization of structure 1 failed. Please try again with a different structure 1.\""
-    puts $tcl_file "exit"
-    puts $tcl_file "}"
-  }
 
   #loop start
   puts $tcl_file "for {set cycle 1} {\$cycle < $::comd::comd_cycle} {incr cycle} {"

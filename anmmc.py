@@ -202,3 +202,4 @@ writeDCD(final_structure_dcd_name, ensemble_final)
 
 ratios = [count2/N, count2/count1 if count1 != 0 else 0, count2, k, accept_para ]
 savetxt(initial_pdb_id + '_ratio.dat', ratios, fmt='%.2e')
+

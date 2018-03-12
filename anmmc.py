@@ -29,7 +29,7 @@ else:
     stepcutoff=2.
 
 if len(ar) > 8 and ar[8].strip() is not '0':
-    acceptance_ratio = int(ar[8])
+    acceptance_ratio = float(ar[8])
 else:
     acceptance_ratio = 0.9
 

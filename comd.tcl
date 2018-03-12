@@ -799,7 +799,7 @@ proc ::comd::Prepare_system {} {
   set tcl_file [open $tcl_file_name w] 
   puts $tcl_file "#This tcl file will run full collective molecular dynamics simulation with given parameters."
   puts $tcl_file "cd $::comd::outputdir"
-  puts $tcl_file "set sh_filename \"${::comd::output_prefix}.sh\""
+  puts $tcl_file "set sh_filename \"${::comd::output_prefix}_min0.sh\""
   puts $tcl_file "set sh_file \[open \$sh_filename w\]"
 
   puts $tcl_file "package require exectool"
@@ -1044,19 +1044,19 @@ proc ::comd::Prepare_system {} {
   if {$::comd::accept_para eq ""} {set ::comd::accept_para 0}
   if {$::comd::max_steps eq ""} {set ::comd::max_steps 0}
   if {$::comd::step_cutoff eq ""} {set ::comd::step_cutoff 0}
-  puts $tcl_file "set sh_file \[open \"$::comd::output_prefix.sh\" w\]"
-  puts $tcl_file "set sh_filename \"${::comd::output_prefix}.sh\""
+  puts $tcl_file "set sh_file \[open \"${::comd::output_prefix}_anmmc_\$cycle.sh\" w\]"
+  puts $tcl_file "set sh_filename \"${::comd::output_prefix}_anmmc_\$cycle.sh\""
   if {[info exists ::comd::num_cores]} {
     puts $tcl_file "puts \$sh_file \"export MKL_NUM_THREADS=[expr $::comd::num_cores/2]\""
   }
   puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker1.pdb \
-    walker1_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::step_cutoff \
-    \$::comd::dev_mag \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
+    walker1_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::dev_mag \
+    \$::comd::step_cutoff \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
     \>& cycle_\${cycle}_ini_anmmc_log.txt \&\""
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker2.pdb \
-    walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::step_cutoff \
-    \$::comd::dev_mag \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
+    walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::dev_mag \
+    \$::comd::step_cutoff \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
     \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
   }
   puts $tcl_file "puts \$sh_file \"wait\""
@@ -1102,8 +1102,8 @@ proc ::comd::Prepare_system {} {
   }
 
   ###### TARGETED MD ########
-  puts $tcl_file "set sh_file \[open \"$::comd::output_prefix.sh\" w\]"
-  puts $tcl_file "set sh_filename \"${::comd::output_prefix}.sh\""
+  puts $tcl_file "set sh_file \[open \"${::comd::output_prefix}_tmd_\$cycle.sh\" w\]"
+  puts $tcl_file "set sh_filename \"${::comd::output_prefix}_tmd_\$cycle.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
   if {[info exists ::comd::num_cores]} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr $::comd::num_cores/2] \\\"\""
@@ -1251,8 +1251,8 @@ proc ::comd::Prepare_system {} {
   }
 
   ###### MINIMIZATION AT THE END OF THE LOOP ########
-  puts $tcl_file "set sh_file \[open \"$::comd::output_prefix.sh\" w\]"
-  puts $tcl_file "set sh_filename \"${::comd::output_prefix}.sh\""
+  puts $tcl_file "set sh_file \[open \"${::comd::output_prefix}_min_\$cycle.sh\" w\]"
+  puts $tcl_file "set sh_filename \"${::comd::output_prefix}_min_\$cycle.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
   if {[info exists ::comd::num_cores]} {
     puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr $::comd::num_cores/2] \\\"\""

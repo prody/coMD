@@ -33,7 +33,7 @@ if len(ar) > 8 and ar[8].strip() is not '0':
 else:
     acceptance_ratio = 0.9
 
-accept_para = acceptance_ratio
+accept_para = 0.1
 
 if len(ar) > 9 and ar[9].strip() is not '0':
     anm_cut=float(ar[9])

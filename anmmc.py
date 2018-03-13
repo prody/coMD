@@ -33,7 +33,7 @@ if len(ar) > 8 and ar[8].strip() is not '0':
 else:
     acceptance_ratio = 0.9
 
-accept_para=0.1
+accept_para = acceptance_ratio
 
 if len(ar) > 9 and ar[9].strip() is not '0':
     anm_cut=float(ar[9])
@@ -96,21 +96,21 @@ count2 = 0 # Accepted up-hill moves
 count3 = 0 # Down-hill moves
 
 # read MC parameter from file
-#if os.path.isfile(initial_pdb_id + '_ratio.dat') and os.stat(initial_pdb_id + '_ratio.dat').st_size != 0:
-#    MCpara = loadtxt(initial_pdb_id + '_ratio.dat')
-#    accept_para = MCpara[4]
-#    if MCpara[1] > 0.95:
-#        accept_para *= 1.5
-#    elif MCpara[1] < 0.85:
-#        accept_para /= 1.5
-#    else:
-#        savetxt(initial_pdb_id + '_status.dat',[1])
+if os.path.isfile(initial_pdb_id + '_ratio.dat') and os.stat(initial_pdb_id + '_ratio.dat').st_size != 0:
+    MCpara = loadtxt(initial_pdb_id + '_ratio.dat')
+    accept_para = MCpara[4]
+    if MCpara[1] > acceptance_ratio + 0.05:
+        accept_para *= 1.5
+    elif MCpara[1] < acceptance_ratio - 0.05:
+        accept_para /= 1.5
+    else:
+        savetxt(initial_pdb_id + '_status.dat',[1])
 #else:
 #    accept_para = 0.1
-# The best value for MC parameter 1 is around 0.9 
-# so values less than 0.85 and greater than 0.95 are not preferred 
+# MC parameter 1 is the acceptance ratio, which should converge on
+# the selected value with a tolerance of 0.05 either side
 # and accept_para is adjusted to help bring it within these limits.
-# This also happens every 25 steps during the run (lines 144 to 150).
+# This also happens every 5 steps during the run (lines 173 to 181).
 
 if original_initial_pdb != original_final_pdb:
     # difference from the target structure is defined as the energy and the minimum is zero. 
@@ -144,16 +144,17 @@ for k in range(N):
         dist = buildDistMatrix(pdb_ca_temp)
         En = sum((native_dist - dist)**2)
 
-        # Check whether you are heading the right way and accept uphill moves depending on the Metropolis criterion.
-        # Classically this depends on RT but these are subsumed by the unknown units from having a uniform spring constant
-	# that is set to 1.
+        # Check whether you are heading the right way and accept uphill moves 
+        # depending on the Metropolis criterion. Classically this depends on RT 
+        # but this is subsumed by the unknown units from having a uniform 
+        # spring constant that is set to 1.
         if Ep > En:
             count3 += 1
             pdb_ca = pdb_ca_temp.copy()
             Ep = En
             accepted = 1
 
-        elif exp(-(En-Ep)/(Ep * accept_para)) > random():
+        elif exp(-(En-Ep)/(Ep)) * accept_para > random():
             pdb_ca = pdb_ca_temp.copy()
             count1 += 1
             count2 += 1
@@ -169,13 +170,15 @@ for k in range(N):
         else:
             f = float(count2)/float(count1)
 
-        if (mod(k,25)==0 and not(k==0)):
+        if (mod(k,5)==0 and not(k==0)):
             # Update of the accept_para to keep the MC para reasonable
             # See comment lines 82 to 85. 
             if f > acceptance_ratio + 0.05:
-                accept_para *= 1.5;
+                accept_para /= 1.5;
             elif f < acceptance_ratio - 0.05:
-                accept_para /= 1.5
+                accept_para *= 1.5
+
+        if accept_para < 0.001: accept_para = 0.001
 
     else:
         # for exploration based on one structure (two runs)

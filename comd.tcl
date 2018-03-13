@@ -818,15 +818,22 @@ proc ::comd::Prepare_system {} {
 
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
 
-  if {$::comd::gpus_present} {
-  set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection1 ","]] + 1}]
+  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
+    set ::comd::num_cores [expr {$::comd::num_cores / 2}]
   }
 
-  if {[info exists ::comd::num_cores]} {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \+p[expr $::comd::num_cores/2] \\\"\""
+  if {$::comd::gpus_present} {
+    set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection1 ","]] + 1}]
+
+    if {[info exists ::comd::num_cores]} {
+      set remainder [expr {$::comd::num_cores % $processes_per_run}]
+      set processes_per_run [expr {$::comd::num_cores - $remainder - $processes_per_run}]
+    }
   } else {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \\\"\""
+    set processes_per_run [expr {$::comd::num_cores - 1}] 
   }
+
+  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \\\"\""
 
   # Walker 1 minimization
   puts $tcl_file "file mkdir \"${::comd::output_prefix}_walker1_min\""
@@ -872,13 +879,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
-
-  if {$::comd::gpus_present == 1} {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min0.log \&\""
-  } else {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min0.log \&\""
-  }
-
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min0.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\"" 
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
@@ -926,26 +927,41 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
-
-    if {$::comd::gpus_present == 1} {
-      puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min0.log \&\""
-    } else {
-      puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min0.log \&\""
-    }
-
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min0.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\"" 
+  }
+
+  puts $tcl_file "set status \[catch \{exec cp ${::comd::output_prefix}_walker1_min\/walker1_minimized0.dcd initr.dcd\} output\]" 
+  
+  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
+    puts $tcl_file "set status \[catch \{exec cp ${::comd::output_prefix}_walker2_min\/walker2_minimized0.dcd fintr.dcd\} output\]" 
   }
 
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "puts \"Now running minimization 0\""
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
-  puts $tcl_file "set status \[catch \{exec cp ${::comd::output_prefix}_walker1_min\/walker1_minimized0.dcd initr.dcd\} output\]" 
-  
-  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    puts $tcl_file "set status \[catch \{exec cp ${::comd::output_prefix}_walker2_min\/walker2_minimized0.dcd fintr.dcd\} output\]" 
-  }
+  puts $tcl_file "if {\$status} {"
+  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+  puts $tcl_file "puts \$err_file \"ERROR: \$output\""
+  puts $tcl_file "exit"
+  puts $tcl_file "}"
+
   puts $tcl_file "puts \"Finished minimization 0\""
+
+  # Check if any files are missing and if so raise an error
+  puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker1_min/walker1_minimized0.coor r} fid\]} {"
+  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+  puts $tcl_file "puts \$err_file \"ERROR: The original minimization of structure 1 failed. See ${::comd::output_prefix}_walker1_min/min0.log for details.\""
+  puts $tcl_file "exit"
+  puts $tcl_file "}"
+  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
+    puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker2_min/walker2_minimized0.coor r} fid\]} {"
+    puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+    puts $tcl_file "puts \$err_file \"ERROR: The original minimization of structure 2 failed. See ${::comd::output_prefix}_walker2_min/min0.log for details.\""
+    puts $tcl_file "exit"
+    puts $tcl_file "}"
+  }
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "package require psfgen"
@@ -968,24 +984,9 @@ proc ::comd::Prepare_system {} {
 
   puts $tcl_file "file mkdir ${::comd::output_prefix}_walker1_pro"
 
-  # Check if any files are missing and if so raise an error
-  puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker1_min/walker1_minimized0.coor r} fid\]} {"
-  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
-  puts $tcl_file "puts \$err_file \"ERROR: The original minimization of structure 1 failed. Please try again with a different structure 1.\""
-  puts $tcl_file "exit"
-  puts $tcl_file "}"
-  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker2_min/walker2_minimized0.coor r} fid\]} {"
-    puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
-    puts $tcl_file "puts \$err_file \"ERROR: The original minimization of structure 2 failed. Please try again with a different structure 2.\""
-    puts $tcl_file "exit"
-    puts $tcl_file "}"
-  }
-
   #loop start
   puts $tcl_file "for {set cycle 1} {\$cycle < $::comd::comd_cycle} {incr cycle} {"
   puts $tcl_file "mol delete all"
-
 
   # Check if any files are missing and if so retry the previous cycle
   puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}-1\].coor r} fid\]} {"
@@ -1047,7 +1048,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"${::comd::output_prefix}_anmmc_\$cycle.sh\" w\]"
   puts $tcl_file "set sh_filename \"${::comd::output_prefix}_anmmc_\$cycle.sh\""
   if {[info exists ::comd::num_cores]} {
-    puts $tcl_file "puts \$sh_file \"export MKL_NUM_THREADS=[expr $::comd::num_cores/2]\""
+    puts $tcl_file "puts \$sh_file \"export MKL_NUM_THREADS=$::comd::num_cores\""
   }
   puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker1.pdb \
     walker1_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::dev_mag \
@@ -1132,11 +1133,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"${::comd::output_prefix}_tmd_\$cycle.sh\" w\]"
   puts $tcl_file "set sh_filename \"${::comd::output_prefix}_tmd_\$cycle.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  if {[info exists ::comd::num_cores]} {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr $::comd::num_cores/2] \\\"\""
-  } else {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
-  }
+  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
 
   # Walker 1 TMD
   puts $tcl_file "set namd_file \[open \[file join \"${::comd::output_prefix}_walker1_pro\" \"pro.conf\"\] w\]"
@@ -1190,13 +1187,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"run [expr $::comd::tmd_len*5]\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_pro\""
-
-  if {$::comd::gpus_present == 1} {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \&\""
-  } else {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD pro.conf > pro\$\{cycle\}.log \&\""
-  }
-
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\""
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
@@ -1252,19 +1243,24 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"run [expr $::comd::tmd_len*5]\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_pro\""
-
-    if {$::comd::gpus_present == 1} {
-      puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \&\""
-    } else {
-      puts $tcl_file "puts \$sh_file \"\\\$NAMD pro.conf > pro\$\{cycle\}.log \&\""
-    }
-
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\""
   }
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "puts \"Now running TMD \$\{cycle\}\""
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
+
+  puts $tcl_file "puts \$sh_file \"wait\""
+  puts $tcl_file "close \$sh_file"
+  puts $tcl_file "puts \"Now running minimization 0\""
+  puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
+  puts $tcl_file "if {\$status} {"
+  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+  puts $tcl_file "puts \$err_file \"ERROR: \$status\""
+  puts $tcl_file "exit"
+  puts $tcl_file "}"
+
   puts $tcl_file "puts \"Finished TMD \$\{cycle\}\""
 
   # If any files are missing continue to the end of the cycle and end up going back to this cycle again
@@ -1281,11 +1277,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "set sh_file \[open \"${::comd::output_prefix}_min_\$cycle.sh\" w\]"
   puts $tcl_file "set sh_filename \"${::comd::output_prefix}_min_\$cycle.sh\""
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
-  if {[info exists ::comd::num_cores]} {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+p[expr $::comd::num_cores/2] \\\"\""
-  } else {
-    puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
-  }
+  puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
 
   # Walker 1 minimization
   puts $tcl_file "set namd_file \[open \[file join \"${::comd::output_prefix}_walker1_min\" \"min.conf\"\] w\]"
@@ -1334,13 +1326,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
-
-  if {$::comd::gpus_present == 1} {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
-  } else {
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\$\{cycle\}.log \&\""
-  }
-
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\""
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
@@ -1391,13 +1377,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
-
-    if {$::comd::gpus_present == 1} {
-      puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
-    } else {
-      puts $tcl_file "puts \$sh_file \"\\\$NAMD min.conf > min\$\{cycle\}.log \&\""
-    }
-
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\""
   }
 
@@ -1619,7 +1599,8 @@ if { $argc < 3 } {
           set ::comd::gpus_present 1
         }
       }
-
+      if {$index eq 23} {
+        set ::comd::num_cores [expr {[eval exec "cat /proc/cpuinfo | grep processor | tail -n 1 | awk \" \{ print \\\$3 \} \""] + 1}]}
       if {$index eq 24} {set ::comd::run_now 1}
       if {$index eq 25} {set ::comd::from_commandline 1}
     }

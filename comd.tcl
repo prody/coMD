@@ -970,14 +970,14 @@ proc ::comd::Prepare_system {} {
 
   # Check if any files are missing and if so raise an error
   puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker1_min/walker1_minimized0.coor r} fid\]} {"
-  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.err\" w\]"
-  puts $tcl_file "puts \$err_file \"The original minimization of structure 1 failed. Please try again with a different structure 1.\""
+  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+  puts $tcl_file "puts \$err_file \"ERROR: The original minimization of structure 1 failed. Please try again with a different structure 1.\""
   puts $tcl_file "exit"
   puts $tcl_file "}"
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker2_min/walker2_minimized0.coor r} fid\]} {"
-    puts $tcl_file "set err_file \[open \"$::comd::output_prefix.err\" w\]"
-    puts $tcl_file "puts \$err_file \"The original minimization of structure 1 failed. Please try again with a different structure 1.\""
+    puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+    puts $tcl_file "puts \$err_file \"ERROR: The original minimization of structure 2 failed. Please try again with a different structure 2.\""
     puts $tcl_file "exit"
     puts $tcl_file "}"
   }
@@ -1064,33 +1064,60 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \"Now running ANM Monte-Carlo stepping \$cycle\""
   puts $tcl_file "set status \[catch \{exec bash \$sh_filename\} output\]"
   puts $tcl_file "puts \"Finished ANM Monte-Carlo stepping \$cycle\""
+
+  # Check if any files are missing and if so raise an error
+  puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker1_min/walker1_minimized0.coor r} fid\]} {"
+  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+  puts $tcl_file "puts \$err_file \"ERROR: The original minimization of structure 1 failed. Please try again with a different structure 1.\""
+  puts $tcl_file "exit"
+  puts $tcl_file "}"
+  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
+    puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker2_min/walker2_minimized0.coor r} fid\]} {"
+    puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+    puts $tcl_file "puts \$err_file \"ERROR: The original minimization of structure 2 failed. Please try again with a different structure 2.\""
+    puts $tcl_file "exit"
+    puts $tcl_file "}"
+  }
+
   
   # Prepare adjusted Calpha positions as inputs for TMD (aligning if transitioning)
+  # Check for missing files and raise errors along the way.
   puts $tcl_file "mol delete all"
   puts $tcl_file "mol load psf walker1_ionized.psf"
   puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}-1\].coor"
   puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
   puts $tcl_file "set s2 \[atomselect top \"all\"\]"
-  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    puts $tcl_file "mol load pdb walker2_target.pdb"
-    puts $tcl_file "mol addfile cycle_\$\{cycle\}_starting_walker1_walker1_target_final_structure.dcd"
-    puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
-    puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
-    puts $tcl_file "\$s3 move \$trans_mat"
-    puts $tcl_file "\$s1 set \{x y z\} \[\$s3 get \{x y z\}\]"
-  }
+  puts $tcl_file "mol load pdb walker2_target.pdb"
+
+  puts $tcl_file "if {\[catch {mol addfile cycle_\$\{cycle\}_starting_walker1_walker1_target_final_structure.dcd} \]} {"
+  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+  puts $tcl_file "puts \$err_file \"ERROR: ANM-MC stepping for walker 1 (ini) in cycle \$cycle failed. See the relevant log file.\""
+  puts $tcl_file "exit"
+  puts $tcl_file "}"
+
+  puts $tcl_file "mol addfile cycle_\$\{cycle\}_starting_walker1_walker1_target_final_structure.dcd"
+  puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
+  puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
+  puts $tcl_file "\$s3 move \$trans_mat"
+  puts $tcl_file "\$s1 set \{x y z\} \[\$s3 get \{x y z\}\]"
   puts $tcl_file "\$s2 set occupancy 0"
   puts $tcl_file "\$s1 set occupancy 1"
   puts $tcl_file "\$s2 writepdb walker1_adjust.pdb"
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "mol delete all"
-  
     puts $tcl_file "mol load psf walker2_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}-1\].coor"
     puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
     puts $tcl_file "set s2 \[atomselect top \"all\"\]"
     puts $tcl_file "mol load pdb walker1_target.pdb"
+
+    puts $tcl_file "if {\[catch {mol addfile cycle_\$\{cycle\}_starting_walker2_walker2_target_final_structure.dcd} \]} {"
+    puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+    puts $tcl_file "puts \$err_file \"ERROR: ANM-MC stepping for walker 2 (ini) in cycle \$cycle failed. See the relevant log file.\""
+    puts $tcl_file "exit"
+    puts $tcl_file "}"
+
     puts $tcl_file "mol addfile cycle_\$\{cycle\}_starting_walker2_walker2_target_final_structure.dcd"
     puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
     puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"

@@ -991,7 +991,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "\$sel2a move \$trans_mat"
     puts $tcl_file "set rmsd \[measure rmsd \$sel2 \$sel1\]"
     puts $tcl_file "set all_rmsd(0) \$rmsd"
-    puts $tcl_file "set rmsd_filename ${::comd::output_prefix}_rmsd.txt"
+    puts $tcl_file "set rmsd_filename rmsd.txt"
     puts $tcl_file "set rmsd_file \[open \$rmsd_filename w\]"
     puts $tcl_file "puts \$rmsd_file \"\$rmsd\""
     puts $tcl_file "file mkdir ${::comd::output_prefix}_walker2_pro"

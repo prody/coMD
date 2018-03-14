@@ -994,6 +994,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "set rmsd_filename rmsd.txt"
     puts $tcl_file "set rmsd_file \[open \$rmsd_filename w\]"
     puts $tcl_file "puts \$rmsd_file \"\$rmsd\""
+    puts $tcl_file "close \$rmsd_file"
     puts $tcl_file "file mkdir ${::comd::output_prefix}_walker2_pro"
   }
 
@@ -1442,7 +1443,9 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "\$sel2a move \$trans_mat"
     puts $tcl_file "set rmsd \[measure rmsd \$sel2 \$sel1\]"
     puts $tcl_file "set all_rmsd(\$\{cycle\}) \$rmsd"
+    puts $tcl_file "set rmsd_file \[open \$rmsd_filename a\]"
     puts $tcl_file "puts \$rmsd_file \"\$rmsd\""
+    puts $tcl_file "close \$rmsd_file"
     puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\[expr \$\{cycle\}\-1\]\) - \$rmsd]\ < 0.15 \)\} \{ break \}"
   }
 

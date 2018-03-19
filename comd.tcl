@@ -991,7 +991,9 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "\$sel2a move \$trans_mat"
     puts $tcl_file "set rmsd \[measure rmsd \$sel2 \$sel1\]"
     puts $tcl_file "set all_rmsd(0) \$rmsd"
-    puts $tcl_file "puts \$rmsd"
+    puts $tcl_file "set rmsd_filename rmsd.txt"
+    puts $tcl_file "set rmsd_file \[open \$rmsd_filename w\]"
+    puts $tcl_file "puts \$rmsd_file \"\$rmsd\""
     puts $tcl_file "file mkdir ${::comd::output_prefix}_walker2_pro"
   }
 
@@ -1128,13 +1130,13 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
     puts $tcl_file "set s2 \[atomselect top \"all\"\]"
 
+    puts $tcl_file "mol load pdb starting_walker2.pdb"
     puts $tcl_file "if {\[catch {mol addfile cycle_\$\{cycle\}_starting_walker2_walker2_target_final_structure.dcd} \]} {"
     puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
     puts $tcl_file "puts \$err_file \"ERROR: ANM-MC stepping for walker 2 (ini) in cycle \$cycle failed. See the relevant log file.\""
     puts $tcl_file "exit"
     puts $tcl_file "}"
-
-    puts $tcl_file "mol load pdb starting_walker2.pdb"
+ 
     puts $tcl_file "mol addfile cycle_\$\{cycle\}_starting_walker2_walker2_target_final_structure.dcd"
     puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
     puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
@@ -1440,7 +1442,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "\$sel2a move \$trans_mat"
     puts $tcl_file "set rmsd \[measure rmsd \$sel2 \$sel1\]"
     puts $tcl_file "set all_rmsd(\$\{cycle\}) \$rmsd"
-    puts $tcl_file "puts \$rmsd"
+    puts $tcl_file "puts \$rmsd_file \"\$rmsd\""
     puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\[expr \$\{cycle\}\-1\]\) - \$rmsd]\ < 0.15 \)\} \{ break \}"
   }
 

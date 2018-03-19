@@ -670,7 +670,7 @@ proc ::comd::Prepare_system {} {
   if {[info exists ::comd::walker1_chid]} {
     set pro [atomselect top "not altloc B and not hydrogen and chain $::comd::walker1_chid"]
   } else {
-    set pro [atomselect top "not altloc B and not hydrogen and protein"]
+    set pro [atomselect top "not altloc B and not hydrogen and protein and not resname UNK"]
   }
   
   $pro writepdb init.pdb
@@ -733,7 +733,7 @@ proc ::comd::Prepare_system {} {
     if {[info exists ::comd::walker2_chid]} {
       set pro [atomselect top "not altloc B and not hydrogen and chain $::comd::walker2_chid"]
     } else {
-      set pro [atomselect top "not altloc B and not hydrogen and protein"]
+      set pro [atomselect top "not altloc B and not hydrogen and protein and not resname UNK"]
     }
     $pro writepdb fino.pdb
     mol delete all

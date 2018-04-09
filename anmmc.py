@@ -3,7 +3,9 @@ from numpy import *
 from random import random
 import os.path
 import sys
+import time
 
+time.sleep(10)
 ar =[]
 for arg in sys.argv:
     ar.append(arg)
@@ -52,16 +54,19 @@ else:
                                 initial_pdb_id + '_' + final_pdb_id + '_final_structure.dcd'
 
 if len(ar) > 12 and ar[12].strip() is not '0':
-    ensemble_dcd_name = ar[12]
+    usePseudoatoms = int(ar[12])
 else:
-    ensemble_dcd_name = 'cycle_{0}_'.format(int(comd_cycle_number)) + \
-                         initial_pdb_id + '_' + final_pdb_id + '_ensemble.dcd'
+    usePseudoatoms = 0
 
 initial_pdb = parsePDB(initial_pdbn)
 final_pdb = parsePDB(final_pdbn)
- 
-initial_pdb_ca = initial_pdb.ca
-final_pdb_ca = final_pdb.ca
+
+if usePseudoatoms:
+    initial_pdb_ca = initial_pdb
+    final_pdb_ca = final_pdb
+else:
+    initial_pdb_ca = initial_pdb.ca
+    final_pdb_ca = final_pdb.ca
 
 # ANM calculation based on current
 pdb_anm = ANM('pdb ca')

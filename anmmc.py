@@ -159,7 +159,7 @@ for k in range(N):
             Ep = En
             accepted = 1
 
-        elif exp(-(En-Ep)/(Ep)) * accept_para > random():
+        elif exp(-(En-Ep) * accept_para) > random():
             pdb_ca = pdb_ca_temp.copy()
             count1 += 1
             count2 += 1

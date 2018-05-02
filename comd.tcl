@@ -457,7 +457,7 @@ based on topology parameters provided. Suggested file extension is .top but othe
       tk_messageBox -type ok -title "HELP" \
         -message "The starting value for the acceptance parameter in ANM-MC steps. Default and suggested value is 0.1."}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfamc.accept_para_label -text "Acceptance parameter:     " -width 21] \
+  grid [label $mfamc.accept_para_label -text "Acceptance ratio    :     " -width 21] \
     -row 1 -column 1 -sticky w
   grid [entry $mfamc.accept_para_field -width 17 \
       -textvariable ::comd::accept_para] \

@@ -285,6 +285,22 @@ constraint of preserving the ratio of 20 water molecules per probe molecule."}] 
   grid [label $mfaio.separatpr_label -width 6] \
     -row 1 -column 5 -sticky w
 
+  grid [button $mfaio.neutralize_help -text "?" -width 1 -padx 0 -pady 0 -command {
+    tk_messageBox -type ok -title "HELP" \
+      -message "By default, counter ions will be added to neutralize a charged \
+system. A charged system (if the protein is charged) may be obtained by unchecking this option."}] \
+    -row 0 -column 6 -sticky w
+  grid [label $mfaio.neutralize_label -text "Add counter ions:              " -width 21] \
+    -row 0 -column 7 -sticky w
+  grid [checkbutton $mfaio.neutralize_check -width 1 \
+      -variable ::comd::neutralize] \
+    -row 0 -column 8 -sticky e
+  grid [entry $mfaio.salt_conc_entry -width 13 \
+    -textvariable ::comd::salt_concentration] \
+    -row 0 -column 9 -columnspan 2 -sticky w
+  $mfaio.neutralize_check select
+
+
   pack $mfaio -side top -ipadx 0 -ipady 5 -fill x -expand 1
 
   #Topology files
@@ -351,7 +367,7 @@ based on topology parameters provided. Suggested file extension is .top but othe
         -message "After running targeted molecular dynamics simulations the walker2 structure needs to be equilibrated into a stable state. Longer minimization creates 
         more stable structures which will guarantee users have a stable targeted molecular dynamics simulation. The units are in ps. "}] \
     -row 0 -column 6 -sticky w
-  grid [label $mfamo.length_label -text "Minimization length (ps):   " -width 21] \
+  grid [label $mfamo.length_label -text "Minimization length (steps):   " -width 21] \
     -row 0 -column 7 -sticky w
   grid [entry $mfamo.length_entry -width 17 \
     -textvariable ::comd::min_length] \
@@ -873,9 +889,9 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"outputEnergies $::comd::min_length\""
   puts $tcl_file "puts \$namd_file \"outputPressure $::comd::min_length\""
   puts $tcl_file "puts \$namd_file \"restartfreq $::comd::min_length\""
-  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*5]\""
-  puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*5]\""
-  puts $tcl_file "puts \$namd_file \"minimize [expr $::comd::min_length*5]\""
+  puts $tcl_file "puts \$namd_file \"dcdfreq $::comd::min_length\""
+  puts $tcl_file "puts \$namd_file \"xstfreq $::comd::min_length\""
+  puts $tcl_file "puts \$namd_file \"minimize $::comd::min_length\""
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
@@ -921,9 +937,9 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"outputEnergies $::comd::min_length\""
     puts $tcl_file "puts \$namd_file \"outputPressure $::comd::min_length\""
     puts $tcl_file "puts \$namd_file \"restartfreq $::comd::min_length\""
-    puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*5]\""
-    puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*5]\""
-    puts $tcl_file "puts \$namd_file \"minimize [expr $::comd::min_length*5]\""
+    puts $tcl_file "puts \$namd_file \"dcdfreq $::comd::min_length\""
+    puts $tcl_file "puts \$namd_file \"xstfreq $::comd::min_length\""
+    puts $tcl_file "puts \$namd_file \"minimize $::comd::min_length\""
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
@@ -1192,18 +1208,18 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"langevinHydrogen on\""
   puts $tcl_file "puts \$namd_file \"TMD on\""
   puts $tcl_file "puts \$namd_file \"TMDk $::comd::spring_k\""
-  puts $tcl_file "puts \$namd_file \"TMDOutputFreq [expr $::comd::tmd_len*1]\""
+  puts $tcl_file "puts \$namd_file \"TMDOutputFreq [expr $::comd::tmd_len*100]\""
   puts $tcl_file "puts \$namd_file \"TMDFile ..\/walker1_adjust.pdb\""
   puts $tcl_file "puts \$namd_file \"TMDFirstStep 0\""
-  puts $tcl_file "puts \$namd_file \"TMDLastStep [expr $::comd::tmd_len*5]\""
+  puts $tcl_file "puts \$namd_file \"TMDLastStep [expr $::comd::tmd_len*500]\""
   puts $tcl_file "puts \$namd_file \"outputname \\\$outputname\""
   puts $tcl_file "puts \$namd_file \"restartname \\\$restartname\""
-  puts $tcl_file "puts \$namd_file \"outputEnergies [expr $::comd::tmd_len*1]\""
-  puts $tcl_file "puts \$namd_file \"outputPressure [expr $::comd::tmd_len*1]\""
-  puts $tcl_file "puts \$namd_file \"restartfreq [expr $::comd::tmd_len*1]\""
-  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::tmd_len*1]\""
-  puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::tmd_len*1]\""
-  puts $tcl_file "puts \$namd_file \"run [expr $::comd::tmd_len*5]\""
+  puts $tcl_file "puts \$namd_file \"outputEnergies [expr $::comd::tmd_len*100]\""
+  puts $tcl_file "puts \$namd_file \"outputPressure [expr $::comd::tmd_len*100]\""
+  puts $tcl_file "puts \$namd_file \"restartfreq [expr $::comd::tmd_len*100]\""
+  puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::tmd_len*100]\""
+  puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::tmd_len*100]\""
+  puts $tcl_file "puts \$namd_file \"run [expr $::comd::tmd_len*500]\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_pro\""
   puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \&\""
@@ -1248,18 +1264,18 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"langevinHydrogen on\""
     puts $tcl_file "puts \$namd_file \"TMD on\""
     puts $tcl_file "puts \$namd_file \"TMDk $::comd::spring_k\""
-    puts $tcl_file "puts \$namd_file \"TMDOutputFreq [expr $::comd::tmd_len*1]\""
+    puts $tcl_file "puts \$namd_file \"TMDOutputFreq [expr $::comd::tmd_len*100]\""
     puts $tcl_file "puts \$namd_file \"TMDFile ..\/walker2_adjust.pdb\""
     puts $tcl_file "puts \$namd_file \"TMDFirstStep 0\""
-    puts $tcl_file "puts \$namd_file \"TMDLastStep [expr $::comd::tmd_len*5]\""
+    puts $tcl_file "puts \$namd_file \"TMDLastStep [expr $::comd::tmd_len*500]\""
     puts $tcl_file "puts \$namd_file \"outputname \\\$outputname\""
     puts $tcl_file "puts \$namd_file \"restartname \\\$restartname\""
-    puts $tcl_file "puts \$namd_file \"outputEnergies [expr $::comd::tmd_len*1]\""
-    puts $tcl_file "puts \$namd_file \"outputPressure [expr $::comd::tmd_len*1]\""
-    puts $tcl_file "puts \$namd_file \"restartfreq [expr $::comd::tmd_len*1]\""
-    puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::tmd_len*1]\""
-    puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::tmd_len*1]\""
-    puts $tcl_file "puts \$namd_file \"run [expr $::comd::tmd_len*5]\""
+    puts $tcl_file "puts \$namd_file \"outputEnergies [expr $::comd::tmd_len*100]\""
+    puts $tcl_file "puts \$namd_file \"outputPressure [expr $::comd::tmd_len*100]\""
+    puts $tcl_file "puts \$namd_file \"restartfreq [expr $::comd::tmd_len*100]\""
+    puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::tmd_len*100]\""
+    puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::tmd_len*100]\""
+    puts $tcl_file "puts \$namd_file \"run [expr $::comd::tmd_len*500]\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_pro\""
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \&\""
@@ -1386,9 +1402,9 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"outputEnergies $::comd::min_length\""
     puts $tcl_file "puts \$namd_file \"outputPressure $::comd::min_length\""
     puts $tcl_file "puts \$namd_file \"restartfreq $::comd::min_length\""
-    puts $tcl_file "puts \$namd_file \"dcdfreq [expr $::comd::min_length*5]\""
-    puts $tcl_file "puts \$namd_file \"xstfreq [expr $::comd::min_length*5]\""
-    puts $tcl_file "puts \$namd_file \"minimize [expr $::comd::min_length*5]\""
+    puts $tcl_file "puts \$namd_file \"dcdfreq $::comd::min_length\""
+    puts $tcl_file "puts \$namd_file \"xstfreq $::comd::min_length\""
+    puts $tcl_file "puts \$namd_file \"minimize $::comd::min_length\""
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
@@ -1524,11 +1540,11 @@ if { $argc < 3 } {
       }
       if {$index eq  8} {
         set ::comd::min_length [lindex $argv $index]
-        set ::comd::min_length [expr int($::comd::min_length * 100)]
+        set ::comd::min_length [expr int($::comd::min_length)]
       }
       if {$index eq  9} {
         set ::comd::tmd_len [lindex $argv $index]
-        set ::comd::tmd_len [expr int($::comd::tmd_len * 100)]
+        set ::comd::tmd_len [expr int($::comd::tmd_len)]
       }
       if {$index eq 10} {set ::comd::anm_cutoff [lindex $argv $index]}
       if {$index eq 11} {set ::comd::max_steps [lindex $argv $index]}
@@ -1556,7 +1572,7 @@ if { $argc < 3 } {
       if {$index eq  5} {set ::comd::dev_mag 0}
       if {$index eq  6} {set ::comd::accept_para ""}
       if {$index eq  7} {set ::comd::step_cutoff 0}
-      if {$index eq  8} {set ::comd::min_length 100}
+      if {$index eq  8} {set ::comd::min_length 500}
       if {$index eq  9} {set ::comd::tmd_len 10}
       if {$index eq 10} {set ::comd::anm_cutoff ""}
       if {$index eq 11} {set ::comd::max_steps [lindex $argv $index]}

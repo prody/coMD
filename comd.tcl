@@ -1610,8 +1610,13 @@ if { $argc < 3 } {
               lappend selection1 [lindex $gpus_selected $i]
               lappend selection2 [lindex $gpus_selected [expr {${i} + [llength $gpus_selected]/2 }]]
             }
-            set ::comd::gpus_selection1 [join $selection1 ","]
-            set ::comd::gpus_selection2 [join $selection2 ","]
+            if {$i > 0} {
+              set ::comd::gpus_selection1 [join $selection1 ","]
+              set ::comd::gpus_selection2 [join $selection2 ","]
+            } else {
+              set ::comd::gpus_selection1 $::comd::gpus_selected
+              set ::comd::gpus_selection2 $::comd::gpus_selected
+            }
           } else {
             set ::comd::gpus_selection1 $::comd::gpus_selected
             set ::comd::gpus_selection2 $::comd::gpus_selected

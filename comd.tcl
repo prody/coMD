@@ -611,6 +611,8 @@ A unique and descriptive prefix choice may allow running multiple simulations in
 proc ::comd::Prepare_system {} {
 
   # WHAT IS NEW?
+  # 3.1 - Bug fixes and suchlike
+  # 3.0 - Can now be run from the command line
   # 2.1 - Bug fixes, and file checks
   # 2.0 - Improved system setup provides lesser number of solvent atoms
   # 2.0 - Cleans up intermediate files

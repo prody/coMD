@@ -1569,19 +1569,17 @@ if { $argc < 3 } {
           set output [eval exec "nvidia-smi"]
           set records [split $output "\n"]
 
-          set j 0
-          foreach rec $records {
-            incr j
-          }
+          set j [llength $records]
 
           set k 0
           set i 0
           set done_header 0
+          set found_processes 0
           set ::comd::gpus_selected [list]
           foreach rec $records {
-            set fields [split $rec]
 
-            if {$k > [expr {$j-11}]} {break}
+            set found_processes [string match *Processes* $rec]
+            if {$found_processes == 1} {break}
 
             if {$i == 6 && $done_header == 0} {
               set done_header 1
@@ -1597,24 +1595,26 @@ if { $argc < 3 } {
             incr k
           }
 
-          set ::comd::gpus_selected [join $::comd::gpus_selected ","]
+          set ::comd::gpus_selected [lreplace $::comd::gpus_selected [expr {[llength $::comd::gpus_selected]-1 }] [expr {[llength $::comd::gpus_selected]-1 }]]
 
-          if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}] || [expr [llength $::comd::gpus_selected] == 1]} {
-            set gpus_selected [wsplit $::comd::gpus_selected ","]
+          if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}] 
+          && [expr [llength $::comd::gpus_selected] > 1]
+          } then {
             set selection1 [list]
             set selection2 [list]
-            for {set i 0} {$i < [expr [llength $gpus_selected]/2]} {incr i} {
-              lappend selection1 [lindex $gpus_selected $i]
-              lappend selection2 [lindex $gpus_selected [expr {${i} + [llength $gpus_selected]/2 }]]
+            for {set i 0} {$i < [expr [llength $::comd::gpus_selected]/2]} {incr i} {
+              lappend selection1 [lindex $::comd::gpus_selected $i]
+              lappend selection2 [lindex $::comd::gpus_selected [expr {${i} + [llength $::comd::gpus_selected]/2 }]]
             }
             set ::comd::gpus_selection1 [join $selection1 ","]
             set ::comd::gpus_selection2 [join $selection2 ","]
           } else {
+            if {[expr [llength $::comd::gpus_selected] > 1]} {
+              set ::comd::gpus_selected [join $::comd::gpus_selected ","]
+            }
             set ::comd::gpus_selection1 $::comd::gpus_selected
             set ::comd::gpus_selection2 $::comd::gpus_selected
           }
-          puts $::comd::gpus_selection1
-          puts [llength [wsplit $::comd::gpus_selection1 ","]]
         }]} {
           set ::comd::gpus_present 0
         } else {

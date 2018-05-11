@@ -1652,7 +1652,6 @@ if { $argc < 3 } {
 
           set ::comd::gpus_selected [lreplace $::comd::gpus_selected [expr {[llength $::comd::gpus_selected]-1 }] [expr {[llength $::comd::gpus_selected]-1 }]]
 
-<<<<<<< HEAD
           if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}] 
           && [expr [llength $::comd::gpus_selected] > 1]
           } then {
@@ -1661,30 +1660,6 @@ if { $argc < 3 } {
             for {set i 0} {$i < [expr [llength $::comd::gpus_selected]/2]} {incr i} {
               lappend selection1 [lindex $::comd::gpus_selected $i]
               lappend selection2 [lindex $::comd::gpus_selected [expr {${i} + [llength $::comd::gpus_selected]/2 }]]
-=======
-          if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-            if {[expr [llength $::comd::gpus_selected] > 1]} {
-              set gpus_selected [wsplit $::comd::gpus_selected ","]
-              set selection1 [list]
-              set selection2 [list]
-              for {set i 0} {$i < [expr [llength $gpus_selected]/2]} {incr i} {
-                lappend selection1 [lindex $gpus_selected $i]
-                lappend selection2 [lindex $gpus_selected [expr {${i} + [llength $gpus_selected]/2 }]]
-              }
-              set ::comd::gpus_selection1 [join $selection1 ","]
-              set ::comd::gpus_selection2 [join $selection2 ","]
-            }
-            if {[expr [llength $::comd::gpus_selected] == 1]} {
-              set ::comd::gpus_selection1 $::comd::gpus_selected
-              set ::comd::gpus_selection2 $::comd::gpus_selected
-            }
-            if {$i > 0} {
-              set ::comd::gpus_selection1 [join $selection1 ","]
-              set ::comd::gpus_selection2 [join $selection2 ","]
-            } else {
-              set ::comd::gpus_selection1 $::comd::gpus_selected
-              set ::comd::gpus_selection2 $::comd::gpus_selected
->>>>>>> d08cce63db922d32568ad1450ddd08b24804fed9
             }
           } else {
             if {[expr [llength $::comd::gpus_selected] > 1]} {

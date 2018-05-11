@@ -843,7 +843,6 @@ proc ::comd::Prepare_system {} {
   if {$::comd::gpus_present} {
     set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection1 ","]] + 1}]
 
-
     if {[info exists ::comd::num_cores]} {
       set remainder [expr {$::comd::num_cores % $processes_per_run}]
       set processes_per_run [expr {$::comd::num_cores - $remainder - $processes_per_run}]
@@ -1624,8 +1623,9 @@ if { $argc < 3 } {
 
           set ::comd::gpus_selected [lreplace $::comd::gpus_selected [expr {[llength $::comd::gpus_selected]-1 }] [expr {[llength $::comd::gpus_selected]-1 }]]
 
+          # Divide the GPUs between the two runs if there are two runs and we have an even number of GPUs
           if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}] 
-          && [expr [llength $::comd::gpus_selected] > 1]
+          && [expr [llength $::comd::gpus_selected] % 2 == 0]
           } then {
             set selection1 [list]
             set selection2 [list]

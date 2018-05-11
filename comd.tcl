@@ -1005,7 +1005,7 @@ proc ::comd::Prepare_system {} {
   }
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    #puts $tcl_file "package require psfgen"
+    #calculate and output initial rmsd
     puts $tcl_file "mol delete all" 
     puts $tcl_file "mol load psf walker1_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized0.coor" 
@@ -1021,10 +1021,6 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "set all_rmsd(0) \$rmsd"
     puts $tcl_file "set rmsd_filename rmsd.txt"
     puts $tcl_file "set rmsd_file \[open \$rmsd_filename w\]"
-    puts $tcl_file "set rmsd_filename_new rmsd_new.txt"
-    puts $tcl_file "set rmsd_file_new \[open \$rmsd_filename_new w\]"
-    puts $tcl_file "set all_rmsd_fixA_walker2(0) \$rmsd"
-    puts $tcl_file "set all_rmsd_fixB_walker1(0) \$rmsd"
     puts $tcl_file "puts \$rmsd_file \"\$rmsd\""
     puts $tcl_file "close \$rmsd_file"
     puts $tcl_file "file mkdir ${::comd::output_prefix}_walker2_pro"

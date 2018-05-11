@@ -434,7 +434,7 @@ based on topology parameters provided. Suggested file extension is .top but othe
       -message "To keep structure intact and to avoid having unrealistic \
         and very different structures in ANM-MC step, an rmsd threshold is used. Suggested value is 4 A."}] \
     -row 0 -column 0 -sticky w
-  grid [label $mfamc.step_cutoff_label -text "Step cutoff (A): "] \
+  grid [label $mfamc.step_cutoff_label -text "Step cutoff (A):"] \
     -row 0 -column 1 -sticky w
   grid [entry $mfamc.step_cutoff_field -width 17 \
     -textvariable ::comd::step_cutoff] \
@@ -457,7 +457,7 @@ based on topology parameters provided. Suggested file extension is .top but othe
       tk_messageBox -type ok -title "HELP" \
         -message "The starting value for the acceptance parameter in ANM-MC steps. Default and suggested value is 0.1."}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfamc.accept_para_label -text "Acceptance parameter:     " -width 21] \
+  grid [label $mfamc.accept_para_label -text "Acceptance ratio:             " -width 21] \
     -row 1 -column 1 -sticky w
   grid [entry $mfamc.accept_para_field -width 17 \
       -textvariable ::comd::accept_para] \
@@ -611,6 +611,8 @@ A unique and descriptive prefix choice may allow running multiple simulations in
 proc ::comd::Prepare_system {} {
 
   # WHAT IS NEW?
+  # 3.1 - Bug fixes and suchlike
+  # 3.0 - Can now be run from the command line
   # 2.1 - Bug fixes, and file checks
   # 2.0 - Improved system setup provides lesser number of solvent atoms
   # 2.0 - Cleans up intermediate files
@@ -943,10 +945,15 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min0.log \&\""
+
+    # Don't run both simulations at the same time when we only have one GPU because it might not have enough memory
+    if {[expr [llength $::comd::gpus_selected] == 1]} {
+      puts $tcl_file "puts \$sh_file \"wait\""
+    }
+
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\"" 
   }
-
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "puts \"Now running minimization 0\""
@@ -993,7 +1000,7 @@ proc ::comd::Prepare_system {} {
   }
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    #puts $tcl_file "package require psfgen"
+    #calculate and output initial rmsd
     puts $tcl_file "mol delete all" 
     puts $tcl_file "mol load psf walker1_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized0.coor" 
@@ -1088,9 +1095,9 @@ proc ::comd::Prepare_system {} {
     \>& cycle_\${cycle}_ini_anmmc_log.txt \&\""
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker2.pdb \
-    walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::dev_mag \
-    \$::comd::step_cutoff \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
-    \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
+      walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::dev_mag \
+      \$::comd::step_cutoff \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
+      \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
   }
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
@@ -1278,7 +1285,13 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"run [expr $::comd::tmd_len*500]\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_pro\""
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \&\""
+
+    # Don't run both simulations at the same time when we only have one GPU because it might not have enough memory
+    if {[expr [llength $::comd::gpus_selected] == 1]} {
+      puts $tcl_file "puts \$sh_file \"wait\""
+    }
+
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\""
   }
   puts $tcl_file "puts \$sh_file \"wait\""
@@ -1408,10 +1421,15 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
     puts $tcl_file "close \$namd_file"
     puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker2_min\""
+
+    # Don't run both simulations at the same time when we only have one GPU because it might not have enough memory
+    if {[expr [llength $::comd::gpus_selected] == 1]} {
+      puts $tcl_file "puts \$sh_file \"wait\""
+    }
+
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\""
   }
-
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
   puts $tcl_file "puts \"Now running minimization \$\{cycle\}\""
@@ -1425,27 +1443,16 @@ proc ::comd::Prepare_system {} {
 
   puts $tcl_file "puts \"Finished minimization \$\{cycle\}\""
 
-  # Add the resulting PDBs to DCD files with the other ones from previous cycles
   puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd ${::comd::output_prefix}_walker1_min\/walker1_minimized\$\{cycle\}.dcd -o walker1_trajectory.dcd\} output\]"
-  puts $tcl_file "set status \[catch \{exec mv walker1_trajectory.dcd initr.dcd\} output\]" 
+  puts $tcl_file "set status \[catch \{exec mv walker1_trajectory.dcd initr.dcd\} output\]"
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd ${::comd::output_prefix}_walker2_min\/walker2_minimized\$\{cycle\}.dcd -o walker2_trajectory.dcd\} output\]"
     puts $tcl_file "set status \[catch \{exec mv walker2_trajectory.dcd fintr.dcd\} output\]"
   }
   puts $tcl_file "puts \"Finished concatenating trajectories for cycle \$\{cycle\}\""
 
-  # If files are missing continue to the end of the loop and the next loop will retry this cycle
-  puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker1_min/walker1_minimized\$\{cycle\}.coor r} fid\]} {"
-  puts $tcl_file "continue"
-  puts $tcl_file "}"
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker2_min/walker2_minimized\$\{cycle\}.coor r} fid\]} {"
-    puts $tcl_file "continue"
-    puts $tcl_file "}"
-  }
-  
-  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    # calculate and output RMSD between the two endpoints if transitioning
+    # calculate and output RMSD between the two endpoints if transitioning and break the loop if conditions are met
     puts $tcl_file "mol delete all" 
     puts $tcl_file "mol load psf walker1_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\${cycle}.coor" 
@@ -1473,7 +1480,7 @@ proc ::comd::Prepare_system {} {
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} { 
     puts $tcl_file "set status \[catch \{exec mv fintr.dcd walker2_trajectory.dcd\} output\]" 
   }
-  #AJ
+
   puts $tcl_file "exit"
   close $tcl_file
   file delete pro_formatted.pdb
@@ -1588,19 +1595,17 @@ if { $argc < 3 } {
           set output [eval exec "nvidia-smi"]
           set records [split $output "\n"]
 
-          set j 0
-          foreach rec $records {
-            incr j
-          }
+          set j [llength $records]
 
           set k 0
           set i 0
           set done_header 0
+          set found_processes 0
           set ::comd::gpus_selected [list]
           foreach rec $records {
-            set fields [split $rec]
 
-            if {$k > [expr {$j-11}]} {break}
+            set found_processes [string match *Processes* $rec]
+            if {$found_processes == 1} {break}
 
             if {$i == 6 && $done_header == 0} {
               set done_header 1
@@ -1616,29 +1621,25 @@ if { $argc < 3 } {
             incr k
           }
 
-          set ::comd::gpus_selected [join $::comd::gpus_selected ","]
+          set ::comd::gpus_selected [lreplace $::comd::gpus_selected [expr {[llength $::comd::gpus_selected]-1 }] [expr {[llength $::comd::gpus_selected]-1 }]]
 
-          if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}] || [expr [llength $::comd::gpus_selected] == 1]} {
-            set gpus_selected [wsplit $::comd::gpus_selected ","]
+          # Divide the GPUs between the two runs if there are two runs and we have an even number of GPUs
+          if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}] 
+          && [expr [llength $::comd::gpus_selected] % 2 == 0]
+          } then {
             set selection1 [list]
             set selection2 [list]
-            for {set i 0} {$i < [expr [llength $gpus_selected]/2]} {incr i} {
-              lappend selection1 [lindex $gpus_selected $i]
-              lappend selection2 [lindex $gpus_selected [expr {${i} + [llength $gpus_selected]/2 }]]
-            }
-            if {$i > 0} {
-              set ::comd::gpus_selection1 [join $selection1 ","]
-              set ::comd::gpus_selection2 [join $selection2 ","]
-            } else {
-              set ::comd::gpus_selection1 $::comd::gpus_selected
-              set ::comd::gpus_selection2 $::comd::gpus_selected
+            for {set i 0} {$i < [expr [llength $::comd::gpus_selected]/2]} {incr i} {
+              lappend selection1 [lindex $::comd::gpus_selected $i]
+              lappend selection2 [lindex $::comd::gpus_selected [expr {${i} + [llength $::comd::gpus_selected]/2 }]]
             }
           } else {
+            if {[expr [llength $::comd::gpus_selected] > 1]} {
+              set ::comd::gpus_selected [join $::comd::gpus_selected ","]
+            }
             set ::comd::gpus_selection1 $::comd::gpus_selected
             set ::comd::gpus_selection2 $::comd::gpus_selected
           }
-          puts $::comd::gpus_selection1
-          puts [llength [wsplit $::comd::gpus_selection1 ","]]
         }]} {
           set ::comd::gpus_present 0
         } else {

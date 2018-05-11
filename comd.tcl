@@ -434,7 +434,7 @@ based on topology parameters provided. Suggested file extension is .top but othe
       -message "To keep structure intact and to avoid having unrealistic \
         and very different structures in ANM-MC step, an rmsd threshold is used. Suggested value is 4 A."}] \
     -row 0 -column 0 -sticky w
-  grid [label $mfamc.step_cutoff_label -text "Step cutoff (A): "] \
+  grid [label $mfamc.step_cutoff_label -text "Step cutoff (A):"] \
     -row 0 -column 1 -sticky w
   grid [entry $mfamc.step_cutoff_field -width 17 \
     -textvariable ::comd::step_cutoff] \
@@ -457,7 +457,7 @@ based on topology parameters provided. Suggested file extension is .top but othe
       tk_messageBox -type ok -title "HELP" \
         -message "The starting value for the acceptance parameter in ANM-MC steps. Default and suggested value is 0.1."}] \
     -row 1 -column 0 -sticky w
-  grid [label $mfamc.accept_para_label -text "Acceptance ratio    :     " -width 21] \
+  grid [label $mfamc.accept_para_label -text "Acceptance ratio:             " -width 21] \
     -row 1 -column 1 -sticky w
   grid [entry $mfamc.accept_para_field -width 17 \
       -textvariable ::comd::accept_para] \
@@ -1505,7 +1505,7 @@ proc ::comd::Prepare_system {} {
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} { 
     puts $tcl_file "set status \[catch \{exec mv fintr.dcd walker2_trajectory.dcd\} output\]" 
   }
-  #AJ
+
   puts $tcl_file "exit"
   close $tcl_file
   file delete pro_formatted.pdb

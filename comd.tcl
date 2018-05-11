@@ -1029,15 +1029,8 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "file mkdir ${::comd::output_prefix}_walker1_pro"
 
   #loop start
-  puts $tcl_file "set repetition 0"
-  puts $tcl_file "set repetition_walker1 1"
-  puts $tcl_file "set repetition_walker2 1"
   puts $tcl_file "for {set cycle 1} {\$cycle < $::comd::comd_cycle} {incr cycle} {"
   puts $tcl_file "mol delete all"
-  
-  puts $tcl_file "if \{\(\$repetition > 9\)\} \{"
-  puts $tcl_file "break"
-  puts $tcl_file "\}"
 
   # Check if any files are missing and if so retry the previous cycle
   puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}-1\].coor r} fid\]} {"
@@ -1101,19 +1094,15 @@ proc ::comd::Prepare_system {} {
   if {[info exists ::comd::num_cores]} {
     puts $tcl_file "puts \$sh_file \"export MKL_NUM_THREADS=$::comd::num_cores\""
   }
-  puts $tcl_file "if \{\(\[expr \$repetition_walker1 == 1\]\)\} \{"
   puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker1.pdb \
     walker1_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::dev_mag \
     \$::comd::step_cutoff \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
     \>& cycle_\${cycle}_ini_anmmc_log.txt \&\""
-  puts $tcl_file "\}"
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    puts $tcl_file "if \{\(\[expr \$repetition_walker2 == 1\]\)\} \{"
     puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker2.pdb \
-    walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::dev_mag \
-    \$::comd::step_cutoff \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
-    \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
-    puts $tcl_file "\}"
+      walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::dev_mag \
+      \$::comd::step_cutoff \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
+      \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
   }
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
@@ -1194,7 +1183,6 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
 
   # Walker 1 TMD
-  puts $tcl_file "if \{\(\[expr \$repetition_walker1 == 1\]\)\} \{"
   puts $tcl_file "set namd_file \[open \[file join \"${::comd::output_prefix}_walker1_pro\" \"pro.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ..\/walker1_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ..\/walker1_ionized.psf\""
@@ -1252,11 +1240,9 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \""
   }
   puts $tcl_file "puts \$sh_file \"cd ..\""
-  puts $tcl_file "\}"
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     # Walker 2 TMD
-    puts $tcl_file "if \{\(\[expr \$repetition_walker2 == 1\]\)\} \{"
     puts $tcl_file "set namd_file \[open \[file join \"${::comd::output_prefix}_walker2_pro\" \"pro.conf\"\] w\]"
     puts $tcl_file "puts \$namd_file \"coordinates     ../walker2_ionized.pdb\""
     puts $tcl_file "puts \$namd_file \"structure       ../walker2_ionized.psf\""
@@ -1314,7 +1300,6 @@ proc ::comd::Prepare_system {} {
       puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \""
     }    
     puts $tcl_file "puts \$sh_file \"cd ..\""
-    puts $tcl_file "\}"
   }
   puts $tcl_file "puts \$sh_file \"wait\""
   puts $tcl_file "close \$sh_file"
@@ -1346,7 +1331,6 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \\\"\""
 
   # Walker 1 minimization
-  puts $tcl_file "if \{\(\[expr \$repetition_walker1 == 1\]\)\} \{"
   puts $tcl_file "set namd_file \[open \[file join \"${::comd::output_prefix}_walker1_min\" \"min.conf\"\] w\]"
   puts $tcl_file "puts \$namd_file \"coordinates     ../walker1_ionized.pdb\""
   puts $tcl_file "puts \$namd_file \"structure       ../walker1_ionized.psf\""
@@ -1399,11 +1383,9 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \""
   } 
   puts $tcl_file "puts \$sh_file \"cd ..\""
-  puts $tcl_file "\}"
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     # Walker 2 minimization
-    puts $tcl_file "if \{\(\[expr \$repetition_walker2 == 1\]\)\} \{"
     puts $tcl_file "set namd_file \[open \[file join \"${::comd::output_prefix}_walker2_min\" \"min.conf\"\] w\]"
     puts $tcl_file "puts \$namd_file \"coordinates     ../walker2_ionized.pdb\""
     puts $tcl_file "puts \$namd_file \"structure       ../walker2_ionized.psf\""
@@ -1456,7 +1438,6 @@ proc ::comd::Prepare_system {} {
       puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \""
     } 
     puts $tcl_file "puts \$sh_file \"cd ..\""
-    puts $tcl_file "\}"
   }
 
   puts $tcl_file "puts \$sh_file \"wait\""
@@ -1652,9 +1633,8 @@ if { $argc < 3 } {
 
           set ::comd::gpus_selected [lreplace $::comd::gpus_selected [expr {[llength $::comd::gpus_selected]-1 }] [expr {[llength $::comd::gpus_selected]-1 }]]
 
-          # Divide the GPUs between the two runs if there are two runs and we have an even number of GPUs
           if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}] 
-          && [expr [llength $::comd::gpus_selected] % 2 == 0]
+          && [expr [llength $::comd::gpus_selected] > 1]
           } then {
             set selection1 [list]
             set selection2 [list]

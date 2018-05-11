@@ -1476,8 +1476,16 @@ proc ::comd::Prepare_system {} {
 
   puts $tcl_file "puts \"Finished minimization \$\{cycle\}\""
 
+  puts $tcl_file "set status \[catch \{exec prody catdcd initr.dcd ${::comd::output_prefix}_walker1_min\/walker1_minimized\$\{cycle\}.dcd -o walker1_trajectory.dcd\} output\]"
+  puts $tcl_file "set status \[catch \{exec mv walker1_trajectory.dcd initr.dcd\} output\]"
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
-    # calculate and output RMSD between the two endpoints if transitioning
+    puts $tcl_file "set status \[catch \{exec prody catdcd fintr.dcd ${::comd::output_prefix}_walker2_min\/walker2_minimized\$\{cycle\}.dcd -o walker2_trajectory.dcd\} output\]"
+    puts $tcl_file "set status \[catch \{exec mv walker2_trajectory.dcd fintr.dcd\} output\]"
+  }
+  puts $tcl_file "puts \"Finished concatenating trajectories for cycle \$\{cycle\}\""
+
+  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
+    # calculate and output RMSD between the two endpoints if transitioning and break the loop if conditions are met
     puts $tcl_file "mol delete all" 
     puts $tcl_file "mol load psf walker1_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\${cycle}.coor" 

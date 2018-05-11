@@ -842,7 +842,6 @@ proc ::comd::Prepare_system {} {
 
   if {$::comd::gpus_present} {
     set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection1 ","]] + 1}]
-    set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection2 ","]] + 1}]
 
 
     if {[info exists ::comd::num_cores]} {

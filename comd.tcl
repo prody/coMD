@@ -66,37 +66,37 @@ namespace eval ::comd:: {
   variable walker2_chid 
   # Ionization parameters
   variable topo_file [list]
-  variable solvent_padding_x
-  variable solvent_padding_y
-  variable solvent_padding_z
+  variable solvent_padding_x 15
+  variable solvent_padding_y 15
+  variable solvent_padding_z 15
   # Minimization parameters
   variable para_file [list]
-  variable temperature 
-  variable min_length 
+  variable temperature 298
+  variable min_length 500
   # ANM-MC-Metropolis parameters
-  variable anm_cutoff 
-  variable dev_mag 
-  variable accept_para
-  variable max_steps
-  variable step_cutoff
+  variable anm_cutoff ""
+  variable dev_mag ""
+  variable accept_para ""
+  variable max_steps ""
+  variable step_cutoff ""
   # TMD options
-  variable spring_k 
-  variable tmd_len 
+  variable spring_k 20000
+  variable tmd_len 10
   # Simulation options
-  variable comd_cycle 
-  variable num_cores
-  variable gpus_selected
+  variable comd_cycle 100 
+  variable num_cores ""
+  variable gpus_selected ""
   variable gpus_selection1
   variable gpus_selection2
-  variable gpus_present
+  variable gpus_present 1
   variable python_path ""
   variable NAMD_PATH ""
   # output options
   variable outputdir 
   variable output_prefix
   variable from_commandline 0
-  variable run_now
-  variable start_dir
+  variable run_now 1
+  variable start_dir [pwd]
   
   # Logvew window counter
   variable logcount 0
@@ -671,6 +671,67 @@ proc ::comd::Prepare_system {} {
     return
   }
 
+  if {$::comd::gpus_selected == ""} {
+    if {[catch {
+      set output [eval exec "nvidia-smi"]
+      set records [split $output "\n"]
+
+      set j [llength $records]
+
+      set k 0
+      set i 0
+      set done_header 0
+      set found_processes 0
+      set ::comd::gpus_selected [list]
+      foreach rec $records {
+
+	set found_processes [string match *Processes* $rec]
+	if {$found_processes == 1} {break}
+
+	if {$i == 6 && $done_header == 0} {
+	  set done_header 1
+	  set i 0
+	} elseif {$done_header && $i == 1} {
+	  set fields [split $rec " "]
+	  lappend ::comd::gpus_selected [lindex $fields 3]
+	} elseif {$done_header && $i == 3} {
+	  set i 0
+	}
+
+	incr i
+	incr k
+      }
+
+      set ::comd::gpus_selected [lreplace $::comd::gpus_selected [expr {[llength $::comd::gpus_selected]-1 }] [expr {[llength $::comd::gpus_selected]-1 }]]
+
+      # Divide the GPUs between the two runs if there are two runs and we have an even number of GPUs
+      if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]
+      && [expr [llength $::comd::gpus_selected] % 2 == 0]
+      } then {
+	set selection1 [list]
+	set selection2 [list]
+	for {set i 0} {$i < [expr [llength $::comd::gpus_selected]/2]} {incr i} {
+	  lappend selection1 [lindex $::comd::gpus_selected $i]
+	  lappend selection2 [lindex $::comd::gpus_selected [expr {${i} + [llength $::comd::gpus_selected]/2 }]]
+	}
+      } else {
+	if {[expr [llength $::comd::gpus_selected] > 1]} {
+	  set ::comd::gpus_selected [join $::comd::gpus_selected ","]
+	}
+	set ::comd::gpus_selection1 $::comd::gpus_selected
+	set ::comd::gpus_selection2 $::comd::gpus_selected
+      }
+    }]} {
+      set ::comd::gpus_present 0
+    } else {
+      set ::comd::gpus_present 1
+    }
+  }
+
+  if {$::comd::num_cores == ""} {
+    set ::comd::num_cores [expr {[eval exec "cat /proc/cpuinfo | grep processor | tail -n 1 | awk \" \{ print \\\$3 \} \""] + 1}]
+  }
+
   global env
   global COMD_PATH
 
@@ -685,7 +746,7 @@ proc ::comd::Prepare_system {} {
   resetpsf
   mol delete all
   mol new $::comd::walker1_pdb
-  if {[info exists ::comd::walker1_chid]} {
+  if {[info exists ::comd::walker1_chid] && ($::comd::walker1_chid != "")} {
     set pro [atomselect top "not altloc B and not hydrogen and chain $::comd::walker1_chid"]
   } else {
     set pro [atomselect top "not altloc B and not hydrogen and protein and not resname UNK"]
@@ -748,7 +809,7 @@ proc ::comd::Prepare_system {} {
     resetpsf
     mol delete all
     mol new $::comd::walker2_pdb
-    if {[info exists ::comd::walker2_chid]} {
+    if {[info exists ::comd::walker2_chid] && ($::comd::walker2_chid != "")} {
       set pro [atomselect top "not altloc B and not hydrogen and chain $::comd::walker2_chid"]
     } else {
       set pro [atomselect top "not altloc B and not hydrogen and protein and not resname UNK"]
@@ -809,7 +870,6 @@ proc ::comd::Prepare_system {} {
   close $log_file
 
   if {$::comd::para_file == [list]} {
-    lappend ::comd::para_file "$COMD_PATH/par_all36_prot.prm" 
     lappend ::comd::para_file "$COMD_PATH/par_all36m_prot.prm" 
     lappend ::comd::para_file "$COMD_PATH/toppar_water_ions.str"
   }
@@ -833,6 +893,11 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "set python_path $::comd::python_path\/python" 
   }
 
+  puts $tcl_file "if {\$namd2path == \"\"} {"
+  puts $tcl_file "set err_file \[open \"$::comd::output_prefix.log\" a\]"
+  puts $tcl_file "puts \$err_file \"ERROR: namd2 binary not found\""
+  puts $tcl_file "exit"
+  puts $tcl_file "}"
 
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
 
@@ -1572,87 +1637,7 @@ if { $argc < 3 } {
       if {$index eq 23} {set ::comd::num_cores [lindex $argv $index]}
       if {$index eq 24} {set ::comd::run_now [lindex $argv $index]}
     }
-
-    # Fill in the remaining values with defaults
-    for {set index $index} {$index < $num_args} {incr index} {
-      if {$index eq  4} {set ::comd::comd_cycle 100}
-      if {$index eq  5} {set ::comd::dev_mag 0}
-      if {$index eq  6} {set ::comd::accept_para ""}
-      if {$index eq  7} {set ::comd::step_cutoff 0}
-      if {$index eq  8} {set ::comd::min_length 500}
-      if {$index eq  9} {set ::comd::tmd_len 10}
-      if {$index eq 10} {set ::comd::anm_cutoff ""}
-      if {$index eq 11} {set ::comd::max_steps [lindex $argv $index]}
-      if {$index eq 15} {set ::comd::solvent_padding_x 10}
-      if {$index eq 16} {set ::comd::solvent_padding_y 10}
-      if {$index eq 17} {set ::comd::solvent_padding_z 10}
-      if {$index eq 18} {set ::comd::topo_file [list]}
-      if {$index eq 19} {set ::comd::temperature 298}
-      if {$index eq 20} {set ::comd::para_file [list]}
-      if {$index eq 21} {set ::comd::spring_k 20000}
-      if {$index eq 22} {
-        if {[catch {
-          set output [eval exec "nvidia-smi"]
-          set records [split $output "\n"]
-
-          set j [llength $records]
-
-          set k 0
-          set i 0
-          set done_header 0
-          set found_processes 0
-          set ::comd::gpus_selected [list]
-          foreach rec $records {
-
-            set found_processes [string match *Processes* $rec]
-            if {$found_processes == 1} {break}
-
-            if {$i == 6 && $done_header == 0} {
-              set done_header 1
-              set i 0
-            } elseif {$done_header && $i == 1} {
-              set fields [split $rec " "]
-              lappend ::comd::gpus_selected [lindex $fields 3]
-            } elseif {$done_header && $i == 3} {
-              set i 0
-            }
-
-            incr i
-            incr k
-          }
-
-          set ::comd::gpus_selected [lreplace $::comd::gpus_selected [expr {[llength $::comd::gpus_selected]-1 }] [expr {[llength $::comd::gpus_selected]-1 }]]
-
-          # Divide the GPUs between the two runs if there are two runs and we have an even number of GPUs
-          if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}] 
-          && [expr [llength $::comd::gpus_selected] % 2 == 0]
-          } then {
-            set selection1 [list]
-            set selection2 [list]
-            for {set i 0} {$i < [expr [llength $::comd::gpus_selected]/2]} {incr i} {
-              lappend selection1 [lindex $::comd::gpus_selected $i]
-              lappend selection2 [lindex $::comd::gpus_selected [expr {${i} + [llength $::comd::gpus_selected]/2 }]]
-            }
-          } else {
-            if {[expr [llength $::comd::gpus_selected] > 1]} {
-              set ::comd::gpus_selected [join $::comd::gpus_selected ","]
-            }
-            set ::comd::gpus_selection1 $::comd::gpus_selected
-            set ::comd::gpus_selection2 $::comd::gpus_selected
-          }
-        }]} {
-          set ::comd::gpus_present 0
-        } else {
-          set ::comd::gpus_present 1
-        }
-      }
-      if {$index eq 23} {
-        set ::comd::num_cores [expr {[eval exec "cat /proc/cpuinfo | grep processor | tail -n 1 | awk \" \{ print \\\$3 \} \""] + 1}]}
-      if {$index eq 24} {set ::comd::run_now 1}
-      if {$index eq 25} {set ::comd::from_commandline 1}
-    }
-
-    set ::comd::start_dir [pwd]
+ 
     ::comd::Prepare_system
     exit
 

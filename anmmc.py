@@ -45,7 +45,7 @@ else:
 if len(ar) > 10 and ar[10].strip() is not '0':
     N=int(ar[10])
 else:
-    N=100
+    N=10000
 
 if len(ar) > 11 and ar[11].strip() is not '0':
     final_structure_dcd_name = ar[11]
@@ -190,8 +190,8 @@ for k in range(N):
         # all moves are uphill but will be accepted anyway
         pdb_ca = pdb_ca_temp.copy()
         count3 += 1
-	accepted = 1
-	f = 1.
+        accepted = 1
+        f = 1.
 
     rmsd = calcRMSD(pdb_ca.getCoords(), initial_pdb_ca.getCoords())
     sys.stdout.write('{:6.2f}'.format(rmsd) + ' ' + '{:5.2f}'.format(rand) + \

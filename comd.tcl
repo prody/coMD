@@ -1144,11 +1144,13 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
     puts $tcl_file "\$s1 writepdb walker2_target.pdb"
   }
-  
-  if {$::comd::anm_cutoff eq ""} {set ::comd::anm_cutoff 0}
-  if {$::comd::accept_para eq ""} {set ::comd::accept_para 0}
-  if {$::comd::max_steps eq ""} {set ::comd::max_steps 0}
+ 
+  if {$::comd::dev_mag eq ""} {set ::comd::dev_mag 0} 
   if {$::comd::step_cutoff eq ""} {set ::comd::step_cutoff 0}
+  if {$::comd::accept_para eq ""} {set ::comd::accept_para 0}
+  if {$::comd::anm_cutoff eq ""} {set ::comd::anm_cutoff 0}
+  if {$::comd::max_steps eq ""} {set ::comd::max_steps 0}
+
   puts $tcl_file "set sh_file \[open \"${::comd::output_prefix}_anmmc_\$cycle.sh\" w\]"
   puts $tcl_file "set sh_filename \"${::comd::output_prefix}_anmmc_\$cycle.sh\""
   if {[info exists ::comd::num_cores]} {

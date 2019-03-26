@@ -704,28 +704,31 @@ proc ::comd::Prepare_system {} {
 
       set ::comd::gpus_selected [lreplace $::comd::gpus_selected [expr {[llength $::comd::gpus_selected]-1 }] [expr {[llength $::comd::gpus_selected]-1 }]]
 
-      # Divide the GPUs between the two runs if there are two runs and we have an even number of GPUs
-      if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]
-      && [expr [llength $::comd::gpus_selected] % 2 == 0]
-      } then {
-	set selection1 [list]
-	set selection2 [list]
-	for {set i 0} {$i < [expr [llength $::comd::gpus_selected]/2]} {incr i} {
-	  lappend selection1 [lindex $::comd::gpus_selected $i]
-	  lappend selection2 [lindex $::comd::gpus_selected [expr {${i} + [llength $::comd::gpus_selected]/2 }]]
-	}
-      } else {
-	if {[expr [llength $::comd::gpus_selected] > 1]} {
-	  set ::comd::gpus_selected [join $::comd::gpus_selected ","]
-	}
-	set ::comd::gpus_selection1 $::comd::gpus_selected
-	set ::comd::gpus_selection2 $::comd::gpus_selected
-      }
     }]} {
       set ::comd::gpus_present 0
     } else {
       set ::comd::gpus_present 1
     }
+  } else {
+    set ::comd::gpus_selected [split $::comd::gpus_selected ","]
+  }
+
+  # Divide the GPUs between the two runs if there are two runs and we have an even number of GPUs
+  if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]
+  && [expr [llength $::comd::gpus_selected] % 2 == 0]
+  } then {
+    set ::comd::gpus_selection1 [list]
+    set ::comd::gpus_selection2 [list]
+    for {set i 0} {$i < [expr [llength $::comd::gpus_selected]/2]} {incr i} {
+      lappend ::comd::gpus_selection1 [lindex $::comd::gpus_selected $i]
+      lappend selection2 [lindex $::comd::gpus_selected [expr {${i} + [llength $::comd::gpus_selected]/2 }]]
+    }
+  } else {
+    if {[expr [llength $::comd::gpus_selected] > 1]} {
+      set ::comd::gpus_selected [join $::comd::gpus_selected ","]
+    }
+    set ::comd::gpus_selection1 $::comd::gpus_selected
+    set ::comd::gpus_selection2 $::comd::gpus_selected
   }
 
   if {$::comd::num_cores == ""} {
@@ -901,20 +904,21 @@ proc ::comd::Prepare_system {} {
 
   puts $tcl_file "puts \$sh_file \"\\\#\\\!\\\/bin\\\/bash\""
 
+  # If there are two different walkers for initial and final structures, divide the CPU cores between them
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     set ::comd::num_cores [expr {$::comd::num_cores / 2}]
   }
 
-  if {$::comd::gpus_present} {
-    set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection1 ","]] + 1}]
-
-    if {[info exists ::comd::num_cores]} {
-      set remainder [expr {$::comd::num_cores % $processes_per_run}]
-      set processes_per_run [expr {$::comd::num_cores - $remainder - $processes_per_run}]
-    }
-  } else {
-    set processes_per_run [expr {$::comd::num_cores - 1}] 
-  }
+  #if {$::comd::gpus_present} {
+  #  set processes_per_run [expr {[llength [wsplit $::comd::gpus_selection1 ","]] + 1}]
+  #
+  #  if {[info exists ::comd::num_cores]} {
+  #    set remainder [expr {$::comd::num_cores % $processes_per_run}]
+  #    set processes_per_run [expr {$::comd::num_cores - $remainder - $processes_per_run}]
+  #  }
+  #} else {
+  #  set processes_per_run [expr {$::comd::num_cores - 1}] 
+  #}
 
   puts $tcl_file "puts \$sh_file \"NAMD=\\\"\$namd2path \+idlepoll \\\"\""
 
@@ -962,7 +966,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min0.log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $::comd::num_cores min.conf > min0.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\"" 
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
@@ -1016,7 +1020,7 @@ proc ::comd::Prepare_system {} {
       puts $tcl_file "puts \$sh_file \"wait\""
     }
 
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $::comd::num_cores min.conf > min\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\"" 
   }
   puts $tcl_file "puts \$sh_file \"wait\""
@@ -1296,7 +1300,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"run [expr $::comd::tmd_len*500]\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_pro\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run pro.conf > pro\$\{cycle\}.log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $::comd::num_cores pro.conf > pro\$\{cycle\}.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\""
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
@@ -1358,7 +1362,7 @@ proc ::comd::Prepare_system {} {
       puts $tcl_file "puts \$sh_file \"wait\""
     }
 
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $::comd::num_cores min.conf > min\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\""
   }
   puts $tcl_file "puts \$sh_file \"wait\""
@@ -1437,7 +1441,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "puts \$namd_file \"reinitvels \\\$temperature\""
   puts $tcl_file "close \$namd_file"
   puts $tcl_file "puts \$sh_file \"cd ${::comd::output_prefix}_walker1_min\""
-  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
+  puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection1 \+ppn $::comd::num_cores min.conf > min\$\{cycle\}.log \&\""
   puts $tcl_file "puts \$sh_file \"cd ..\""
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
@@ -1494,7 +1498,7 @@ proc ::comd::Prepare_system {} {
       puts $tcl_file "puts \$sh_file \"wait\""
     }
 
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $processes_per_run min.conf > min\$\{cycle\}.log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $::comd::num_cores min.conf > min\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\""
   }
   puts $tcl_file "puts \$sh_file \"wait\""

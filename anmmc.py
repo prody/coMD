@@ -80,20 +80,22 @@ eigs_n = eigs / sum(eigs)
 eigscumsum = eigs_n.cumsum()
 U = pdb_anm.getEigvecs()
 
-# Take a step along mode 1 (ID 0) to calculate the scale factor
-pdb_ca = initial_pdb_ca
-pdb_ca_temp = pdb_ca.copy()
-ID = 0
-direction = 1.
 scale_factor = 1.
-coords_temp = pdb_ca_temp.getCoords()
-coords_temp[0:,0] = coords_temp[0:,0] + direction * U[range(0,len(U),3),ID] * eigs[ID] * scale_factor
-coords_temp[0:,1] = coords_temp[0:,1] + direction * U[range(1,len(U),3),ID] * eigs[ID] * scale_factor
-coords_temp[0:,2] = coords_temp[0:,2] + direction * U[range(2,len(U),3),ID] * eigs[ID] * scale_factor
-pdb_ca_temp.setCoords(coords_temp)
-pdb_ca = pdb_ca_temp.copy()
-biggest_rmsd = calcRMSD(pdb_ca.getCoords(), initial_pdb_ca.getCoords())
-scale_factor = devi/biggest_rmsd # This means that devi is the maximum deviation in RMSD for any step
+
+if original_initial_pdb != original_final_pdb:
+    # Take a step along mode 1 (ID 0) to calculate the scale factor
+    pdb_ca = initial_pdb_ca
+    pdb_ca_temp = pdb_ca.copy()
+    ID = 0
+    direction = 1.
+    coords_temp = pdb_ca_temp.getCoords()
+    coords_temp[0:,0] = coords_temp[0:,0] + direction * U[range(0,len(U),3),ID] * eigs[ID] * scale_factor
+    coords_temp[0:,1] = coords_temp[0:,1] + direction * U[range(1,len(U),3),ID] * eigs[ID] * scale_factor
+    coords_temp[0:,2] = coords_temp[0:,2] + direction * U[range(2,len(U),3),ID] * eigs[ID] * scale_factor
+    pdb_ca_temp.setCoords(coords_temp)
+    pdb_ca = pdb_ca_temp.copy()
+    biggest_rmsd = calcRMSD(pdb_ca.getCoords(), initial_pdb_ca.getCoords())
+    scale_factor = devi/biggest_rmsd # This means that devi is the maximum deviation in RMSD for any step
 
 # counts for metropolis sampling
 count1 = 0 # Up-hill moves

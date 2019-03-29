@@ -65,8 +65,8 @@ if usePseudoatoms:
     initial_pdb_ca = initial_pdb
     final_pdb_ca = final_pdb
 else:
-    initial_pdb_ca = initial_pdb.ca
-    final_pdb_ca = final_pdb.ca
+    initial_pdb_ca = initial_pdb.select('name CA or name BB')
+    final_pdb_ca = final_pdb.select('name CA or name BB')
 
 # ANM calculation based on current
 pdb_anm = ANM('pdb ca')

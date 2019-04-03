@@ -87,9 +87,9 @@ if original_initial_pdb != original_final_pdb:
     ID = 0
     direction = 1.
     coords_temp = pdb_ca_temp.getCoords()
-    coords_temp[0:,0] = coords_temp[0:,0] + direction * U[range(0,len(U),3),ID] * eigs[ID] * scale_factor
-    coords_temp[0:,1] = coords_temp[0:,1] + direction * U[range(1,len(U),3),ID] * eigs[ID] * scale_factor
-    coords_temp[0:,2] = coords_temp[0:,2] + direction * U[range(2,len(U),3),ID] * eigs[ID] * scale_factor
+    coords_temp[0:,0] = coords_temp[0:,0] + direction * U[range(0,len(U),3),ID] * eigs[ID]
+    coords_temp[0:,1] = coords_temp[0:,1] + direction * U[range(1,len(U),3),ID] * eigs[ID]
+    coords_temp[0:,2] = coords_temp[0:,2] + direction * U[range(2,len(U),3),ID] * eigs[ID]
     pdb_ca_temp.setCoords(coords_temp)
     pdb_ca = pdb_ca_temp.copy()
     biggest_rmsd = calcRMSD(pdb_ca.getCoords(), initial_pdb_ca.getCoords())

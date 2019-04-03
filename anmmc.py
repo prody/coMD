@@ -6,7 +6,7 @@ import sys
 import time
 
 time.sleep(10)
-ar =[]
+ar = []
 for arg in sys.argv:
     ar.append(arg)
 
@@ -80,8 +80,6 @@ eigs_n = eigs / sum(eigs)
 eigscumsum = eigs_n.cumsum()
 U = pdb_anm.getEigvecs()
 
-scale_factor = 1.
-
 if original_initial_pdb != original_final_pdb:
     # Take a step along mode 1 (ID 0) to calculate the scale factor
     pdb_ca = initial_pdb_ca
@@ -96,6 +94,20 @@ if original_initial_pdb != original_final_pdb:
     pdb_ca = pdb_ca_temp.copy()
     biggest_rmsd = calcRMSD(pdb_ca.getCoords(), initial_pdb_ca.getCoords())
     scale_factor = devi/biggest_rmsd # This means that devi is the maximum deviation in RMSD for any step
+else:
+    scale_factor = ones((U.shape[-1]))
+    for ID in range(U.shape[-1]):
+        pdb_ca = initial_pdb_ca
+        pdb_ca_temp = pdb_ca.copy()
+        direction = 1.
+        coords_temp = pdb_ca_temp.getCoords()
+        coords_temp[0:,0] = coords_temp[0:,0] + direction * U[range(0,len(U),3),ID] * eigs[ID] * scale_factor[ID]
+        coords_temp[0:,1] = coords_temp[0:,1] + direction * U[range(1,len(U),3),ID] * eigs[ID] * scale_factor[ID]
+        coords_temp[0:,2] = coords_temp[0:,2] + direction * U[range(2,len(U),3),ID] * eigs[ID] * scale_factor[ID]
+        pdb_ca_temp.setCoords(coords_temp)
+        pdb_ca = pdb_ca_temp.copy()
+        biggest_rmsd = calcRMSD(pdb_ca.getCoords(), initial_pdb_ca.getCoords())
+        scale_factor[ID] = devi/biggest_rmsd # This means that devi is the exact deviation in RMSD for every step
 
 # counts for metropolis sampling
 count1 = 0 # Up-hill moves

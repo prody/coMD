@@ -185,7 +185,7 @@ for k in range(N):
         if accept_para < 0.001: accept_para = 0.001
 
     else:
-        # for exploration based on one structure (two runs)
+        # for exploration based on one structure
         # all moves are uphill but will be accepted anyway
         pdb_ca = pdb_ca_temp.copy()
         count3 += 1

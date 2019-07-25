@@ -1026,7 +1026,7 @@ proc ::comd::Prepare_system {} {
       puts $tcl_file "puts \$sh_file \"wait\""
     }
 
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $::comd::num_cores min.conf > min\$\{cycle\}.log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $::comd::num_cores min.conf > min0.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\"" 
   }
   puts $tcl_file "puts \$sh_file \"wait\""
@@ -1079,11 +1079,11 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "mol delete all" 
     puts $tcl_file "mol load psf walker1_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized0.coor" 
-    puts $tcl_file "set sel1 \[atomselect top \"name CA\"\]" 
+    puts $tcl_file "set sel1 \[atomselect top \"name CA or name BB\"\]" 
     puts $tcl_file "set sel1a \[atomselect top all\]"
     puts $tcl_file "mol load psf walker2_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized0.coor"  
-    puts $tcl_file "set sel2 \[atomselect top \"name CA\"\]" 
+    puts $tcl_file "set sel2 \[atomselect top \"name CA or name BB\"\]" 
     puts $tcl_file "set sel2a \[atomselect top all\]"
     puts $tcl_file "set trans_mat \[measure fit \$sel2 \$sel1\]"
     puts $tcl_file "\$sel2a move \$trans_mat"
@@ -1115,12 +1115,12 @@ proc ::comd::Prepare_system {} {
   # Prepare PDB files for ANM-MC (making sure they are aligned if transitioning)
   puts $tcl_file "mol load psf walker1_ionized.psf"
   puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}-1\].coor"
-  puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
+  puts $tcl_file "set s1 \[atomselect top \"name CA or name BB\"\]"
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "set s2 \[atomselect top \"all\"\]"
     puts $tcl_file "mol load psf walker2_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}-1\].coor"
-    puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
+    puts $tcl_file "set s3 \[atomselect top \"name CA or name BB\"\]"
     puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
     puts $tcl_file "\$s2 move \$trans_mat"
   }
@@ -1130,11 +1130,11 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "mol delete all"
     puts $tcl_file "mol load psf walker2_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}-1\].coor"
-    puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
+    puts $tcl_file "set s1 \[atomselect top \"name CA or name BB\"\]"
     puts $tcl_file "set s2 \[atomselect top \"all\"\]"
     puts $tcl_file "mol load psf walker1_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}-1\].coor"
-    puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
+    puts $tcl_file "set s3 \[atomselect top \"name CA or name BB\"\]"
     puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
     puts $tcl_file "\$s2 move \$trans_mat"
     puts $tcl_file "\$s1 writepdb starting_walker2.pdb"
@@ -1142,7 +1142,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "mol delete all"
     puts $tcl_file "mol load psf walker2_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}-1\].coor"
-    puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
+    puts $tcl_file "set s1 \[atomselect top \"name CA or name BB\"\]"
   }
   puts $tcl_file "\$s1 writepdb walker1_target.pdb"
 
@@ -1151,7 +1151,7 @@ proc ::comd::Prepare_system {} {
   
     puts $tcl_file "mol load psf walker1_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}-1\].coor"
-    puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
+    puts $tcl_file "set s1 \[atomselect top \"name CA or name BB\"\]"
     puts $tcl_file "\$s1 writepdb walker2_target.pdb"
   }
  
@@ -1201,7 +1201,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "mol delete all"
   puts $tcl_file "mol load psf walker1_ionized.psf"
   puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}-1\].coor"
-  puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
+  puts $tcl_file "set s1 \[atomselect top \"name CA or name BB\"\]"
   puts $tcl_file "set s2 \[atomselect top \"all\"\]"
 
   puts $tcl_file "mol load pdb starting_walker1.pdb"
@@ -1212,7 +1212,7 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "}"
 
   puts $tcl_file "mol addfile cycle_\$\{cycle\}_starting_walker1_walker1_target_final_structure.dcd"
-  puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
+  puts $tcl_file "set s3 \[atomselect top \"name CA or name BB\"\]"
 
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
@@ -1228,7 +1228,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "mol delete all"
     puts $tcl_file "mol load psf walker2_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}-1\].coor"
-    puts $tcl_file "set s1 \[atomselect top \"name CA\"\]"
+    puts $tcl_file "set s1 \[atomselect top \"name CA or name BB\"\]"
     puts $tcl_file "set s2 \[atomselect top \"all\"\]"
 
     puts $tcl_file "mol load pdb starting_walker2.pdb"
@@ -1239,7 +1239,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "}"
  
     puts $tcl_file "mol addfile cycle_\$\{cycle\}_starting_walker2_walker2_target_final_structure.dcd"
-    puts $tcl_file "set s3 \[atomselect top \"name CA\"\]"
+    puts $tcl_file "set s3 \[atomselect top \"name CA or name BB\"\]"
     puts $tcl_file "set trans_mat \[measure fit \$s1 \$s3\]"
     puts $tcl_file "\$s3 move \$trans_mat"
     puts $tcl_file "\$s1 set \{x y z\} \[\$s3 get \{x y z\}\]"
@@ -1545,11 +1545,11 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "mol delete all" 
     puts $tcl_file "mol load psf walker1_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker1_min/walker1_minimized\${cycle}.coor" 
-    puts $tcl_file "set sel1 \[atomselect top \"name CA\"\]" 
+    puts $tcl_file "set sel1 \[atomselect top \"name CA or name BB\"\]" 
     puts $tcl_file "set sel1a \[atomselect top all\]"
     puts $tcl_file "mol load psf walker2_ionized.psf"
     puts $tcl_file "mol addfile ${::comd::output_prefix}_walker2_min/walker2_minimized\${cycle}.coor"  
-    puts $tcl_file "set sel2 \[atomselect top \"name CA\"\]" 
+    puts $tcl_file "set sel2 \[atomselect top \"name CA or name BB\"\]" 
     puts $tcl_file "set sel2a \[atomselect top all\]"
     puts $tcl_file "set trans_mat \[measure fit \$sel2 \$sel1\]"
     puts $tcl_file "\$sel2a move \$trans_mat"

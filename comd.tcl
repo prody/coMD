@@ -1167,13 +1167,13 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "puts \$sh_file \"export MKL_NUM_THREADS=$::comd::num_cores\""
   }
   puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker1.pdb \
-    walker1_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::dev_mag \
-    \$::comd::step_cutoff \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
+    walker1_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle $::comd::dev_mag \
+    $::comd::step_cutoff $::comd::accept_para $::comd::anm_cutoff $::comd::max_steps \
     \>& cycle_\${cycle}_ini_anmmc_log.txt \&\""
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "puts \$sh_file \"\$python_path anmmc.py starting_walker2.pdb \
-      walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle \$::comd::dev_mag \
-      \$::comd::step_cutoff \$::comd::accept_para \$::comd::anm_cutoff \$::comd::max_steps \
+      walker2_target.pdb $::comd::walker1_pdb $::comd::walker2_pdb \$cycle $::comd::dev_mag \
+      $::comd::step_cutoff $::comd::accept_para $::comd::anm_cutoff $::comd::max_steps \
       \>& cycle_\${cycle}_fin_anmmc_log.txt \&\""
   }
   puts $tcl_file "puts \$sh_file \"wait\""

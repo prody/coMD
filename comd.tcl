@@ -1374,7 +1374,7 @@ proc ::comd::Prepare_system {} {
       puts $tcl_file "puts \$sh_file \"wait\""
     }
 
-    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $::comd::num_cores min.conf > min\$\{cycle\}.log \&\""
+    puts $tcl_file "puts \$sh_file \"\\\$NAMD \+devices $::comd::gpus_selection2 \+ppn $::comd::num_cores pro.conf > pro\$\{cycle\}.log \&\""
     puts $tcl_file "puts \$sh_file \"cd ..\""
   }
   puts $tcl_file "puts \$sh_file \"wait\""

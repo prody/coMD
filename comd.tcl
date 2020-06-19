@@ -731,8 +731,18 @@ proc ::comd::Prepare_system {} {
     set ::comd::gpus_selection2 $::comd::gpus_selected
   }
 
+  # Linux version
   if {$::comd::num_cores == ""} {
-    set ::comd::num_cores [expr {[eval exec "cat /proc/cpuinfo | grep processor | tail -n 1 | awk \" \{ print \\\$3 \} \""] + 1}]
+    if {!([catch {set num_cores [expr {[eval "exec cat /proc/cpuinfo | grep processor | tail -n 1 | awk \"\{ print \\\$3 \}\""] + 1}]}])} {
+      set ::comd::num_cores $num_cores
+    }
+  }
+
+  # Mac version
+  if {$::comd::num_cores == ""} {
+    if {!([catch {set num_cores [exec sysctl -a | grep machdep.cpu | grep thread_count | awk "{ print \$2}"]}])} {
+      set ::comd::num_cores $num_cores
+    }
   }
 
   global env
@@ -1620,7 +1630,7 @@ if { $argc < 3 } {
       if {$index eq  3} {set ::comd::walker2_pdb [lindex $argv $index]}
       if {$index eq  4} {
         set ::comd::comd_cycle [lindex $argv $index]
-	set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
+	      set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
       }
       if {$index eq  5} {
         set ::comd::dev_mag [lindex $argv $index]

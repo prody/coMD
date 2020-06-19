@@ -1620,7 +1620,7 @@ if { $argc < 3 } {
       if {$index eq  3} {set ::comd::walker2_pdb [lindex $argv $index]}
       if {$index eq  4} {
         set ::comd::comd_cycle [lindex $argv $index]
-	set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
+	      set ::comd::comd_cycle [expr ${::comd::comd_cycle}+1]
       }
       if {$index eq  5} {
         set ::comd::dev_mag [lindex $argv $index]

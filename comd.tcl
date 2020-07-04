@@ -683,23 +683,23 @@ proc ::comd::Prepare_system {} {
       set done_header 0
       set found_processes 0
       set ::comd::gpus_selected [list]
+      
       foreach rec $records {
+        set found_processes [string match *Processes* $rec]
+        if {$found_processes == 1} {break}
 
-	set found_processes [string match *Processes* $rec]
-	if {$found_processes == 1} {break}
+        if {$i == 6 && $done_header == 0} {
+          set done_header 1
+          set i 0
+        } elseif {$done_header && $i == 1} {
+          set fields [split $rec " "]
+          lappend ::comd::gpus_selected [lindex $fields 3]
+        } elseif {$done_header && $i == 3} {
+          set i 0
+        }
 
-	if {$i == 6 && $done_header == 0} {
-	  set done_header 1
-	  set i 0
-	} elseif {$done_header && $i == 1} {
-	  set fields [split $rec " "]
-	  lappend ::comd::gpus_selected [lindex $fields 3]
-	} elseif {$done_header && $i == 3} {
-	  set i 0
-	}
-
-	incr i
-	incr k
+        incr i
+        incr k
       }
 
       set ::comd::gpus_selected [lreplace $::comd::gpus_selected [expr {[llength $::comd::gpus_selected]-1 }] [expr {[llength $::comd::gpus_selected]-1 }]]

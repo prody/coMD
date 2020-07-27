@@ -1113,16 +1113,23 @@ proc ::comd::Prepare_system {} {
   puts $tcl_file "file mkdir ${::comd::output_prefix}_walker1_pro"
 
   #loop start
+  puts $tcl_file "set num_retries 0"
   puts $tcl_file "for {set cycle 1} {\$cycle < $::comd::comd_cycle} {incr cycle} {"
   puts $tcl_file "mol delete all"
 
   # Check if any files are missing and if so retry the previous cycle
   puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker1_min/walker1_minimized\[expr \$\{cycle\}-1\].coor r} fid\]} {"
   puts $tcl_file "set cycle \[expr \$\{cycle\}-1\]"
+  puts $tcl_file "incr num_retries"
+  puts $tcl_file "} else {"
+  puts $tcl_file "set num_retries 0"
   puts $tcl_file "}"
   if {[expr {$::comd::walker1_pdb}] ne [expr {$::comd::walker2_pdb}]} {
     puts $tcl_file "if {\[catch {open ${::comd::output_prefix}_walker2_min/walker2_minimized\[expr \$\{cycle\}-1\].coor r} fid\]} {"
     puts $tcl_file "set cycle \[expr \$\{cycle\}-1\]"
+    puts $tcl_file "incr num_retries"
+    puts $tcl_file "} else {"
+    puts $tcl_file "set num_retries 0"
     puts $tcl_file "}"
   }
 
@@ -1590,7 +1597,7 @@ proc ::comd::Prepare_system {} {
     puts $tcl_file "set rmsd_file \[open \$rmsd_filename a\]"
     puts $tcl_file "puts \$rmsd_file \"\$rmsd\""
     puts $tcl_file "close \$rmsd_file"
-    puts $tcl_file "if \{\(\$rmsd < 1.5)\|\|(\[expr \$all_rmsd\(\[expr \$\{cycle\}\-1\]\) - \$rmsd]\ < 0.15 \)\} \{ break \}"
+    puts $tcl_file "if \{\(\$rmsd < 1.5\)\|\|\(\[expr \$all_rmsd\(\[expr \$\{cycle\}\-1\]\) - \$rmsd]\ < 0.15 \)\|\|\(\$num_retries > 5\)\} \{ break \}"
   }
 
   # end loop
